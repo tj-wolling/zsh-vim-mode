@@ -4,8 +4,6 @@ function zle-line-init zle-keymap-select {
   zle reset-prompt
 }
 
-# zle -N zle-line-init
-zle -N zle-keymap-select
 
 bindkey -v
 
@@ -36,14 +34,12 @@ bindkey -M vicmd 'U' redo
 bindkey -M vicmd 'H' run-help
 bindkey -M viins '\eh' run-help
 
-bindkey -M vicmd 'k' history-substring-search-up
-bindkey -M vicmd 'j' history-substring-search-down
-
 bindkey '^p' history-substring-search-up
 bindkey '^n' history-substring-search-down
 
 bindkey -M vicmd '\-' vi-repeat-find
 bindkey -M vicmd '_' vi-rev-repeat-find
+bindkey -M viins '^r' vi-rev-repeat-find
 
 bindkey -M viins '\e.' insert-last-word
 bindkey -M vicmd '\e.' insert-last-word
@@ -51,16 +47,19 @@ bindkey -M vicmd '\e.' insert-last-word
 bindkey -M viins '^a' beginning-of-line
 bindkey -M viins '^e' end-of-line
 
-# if mode indicator wasn't setup by theme, define default
-if [[ "$MODE_INDICATOR" == "" ]]; then
-  MODE_INDICATOR="%{$fg_bold[red]%}<%{$fg[red]%}<<%{$reset_color%}"
-fi
+bindkey -M viins 'jj' vi-cmd-mode
 
-function vi_mode_prompt_info() {
-  echo "${${KEYMAP/vicmd/$MODE_INDICATOR}/(main|viins)/}"
+function zle-line-init zle-keymap-select {
+  case $KEYMAP in
+    vicmd)
+      RPROMPT="%{${bg[blue]}%}%{${fg_bold[white]}%} normal %{${reset_color}%}"
+      ;;
+    main|viins)
+      RPROMPT="%{${bg[red]}%}%{${fg_bold[white]}%} insert %{${reset_color}%}"
+      ;;
+  esac
+  zle reset-prompt
 }
+zle -N zle-line-init
+zle -N zle-keymap-select
 
-# define right prompt, if it wasn't defined by a theme
-if [[ "$RPS1" == "" && "$RPROMPT" == "" ]]; then
-  RPS1='$(vi_mode_prompt_info)'
-fi
