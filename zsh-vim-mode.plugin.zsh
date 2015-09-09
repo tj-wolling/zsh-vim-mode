@@ -1,16 +1,9 @@
-# Original from oh-my-zsh plugins.
-
-function zle-line-init zle-keymap-select {
-  zle reset-prompt
-}
-
-# zle -N zle-line-init
-zle -N zle-keymap-select
-
 bindkey -v
 
-bindkey '^k' vi-cmd-mode # <C-k> for going to command mode
+# http://dougblack.io/words/zsh-vi-mode.html
+export KEYTIMEOUT=1
 
+bindkey -M viins '^k' vi-cmd-mode # <C-k> for going to command mode
 bindkey -M vicmd ' ' execute-named-cmd # Space for command line mode
 
 # Home key variants
@@ -52,6 +45,7 @@ fi
 
 bindkey -M vicmd '\-' vi-repeat-find
 bindkey -M vicmd '_' vi-rev-repeat-find
+bindkey -M viins '^r' vi-rev-repeat-find
 
 bindkey -M viins '\e.' insert-last-word
 bindkey -M vicmd '\e.' insert-last-word
@@ -59,7 +53,11 @@ bindkey -M vicmd '\e.' insert-last-word
 bindkey -M viins '^a' beginning-of-line
 bindkey -M viins '^e' end-of-line
 
-# if mode indicator wasn't setup by theme, define default
+# backspace and ^h working even after returning from command mode
+bindkey -M viins '^?' backward-delete-char
+bindkey -M viins '^h' backward-delete-char
+
+# If mode indicator wasn't setup by theme, define default
 if [[ "$N_MODE" == "" ]]; then
   N_MODE="%{$fg[red]%}[N]%{$reset_color%}"
 fi
@@ -68,23 +66,20 @@ if [[ "$I_MODE" == "" ]]; then
   I_MODE="%{$fg[white]%}[I]%{$reset_color%}"
 fi
 
-function vi_mode_prompt_info() {
-  echo "${${KEYMAP/vicmd/$N_MODE}/(main|viins)/$I_MODE}"
+function zle-line-init zle-keymap-select {
+  case $KEYMAP in
+    vicmd)
+      RPROMPT=$N_MODE
+      ;;
+    main|viins)
+      RPROMPT=$I_MODE
+      ;;
+  esac
+  zle reset-prompt
 }
 
 # define right prompt, if it wasn't defined by a theme
-if [[ "$RPS1" == "" && "$RPROMPT" == "" ]]; then
-  RPS1='$(vi_mode_prompt_info)'
+if [[ -z $RPS1 && -z $RPROMPT ]]; then
+    zle -N zle-line-init
+    zle -N zle-keymap-select
 fi
-
-## http://dougblack.io/words/zsh-vi-mode.html
-#
-export KEYTIMEOUT=1
-
-# backspace and ^h working even after
-# # returning from command mode
-bindkey '^?' backward-delete-char
-bindkey '^h' backward-delete-char
-
-# ctrl-r starts searching history backward
-bindkey '^r' history-incremental-search-backward
