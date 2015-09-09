@@ -36,11 +36,19 @@ bindkey -M vicmd 'U' redo
 bindkey -M vicmd 'H' run-help
 bindkey -M viins '\eh' run-help
 
-bindkey -M vicmd 'k' history-substring-search-up
-bindkey -M vicmd 'j' history-substring-search-down
+if [[ -n $HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND ]]; then
+    bindkey -M vicmd 'k' history-substring-search-up
+    bindkey -M vicmd 'j' history-substring-search-down
 
-bindkey '^p' history-substring-search-up
-bindkey '^n' history-substring-search-down
+    bindkey '^p' history-substring-search-up
+    bindkey '^n' history-substring-search-down
+else
+    bindkey -M vicmd 'k' up-history
+    bindkey -M vicmd 'j' down-history
+
+    bindkey '^p' up-history
+    bindkey '^n' down-history
+fi
 
 bindkey -M vicmd '\-' vi-repeat-find
 bindkey -M vicmd '_' vi-rev-repeat-find
@@ -52,12 +60,16 @@ bindkey -M viins '^a' beginning-of-line
 bindkey -M viins '^e' end-of-line
 
 # if mode indicator wasn't setup by theme, define default
-if [[ "$MODE_INDICATOR" == "" ]]; then
-  MODE_INDICATOR="%{$fg_bold[red]%}<%{$fg[red]%}<<%{$reset_color%}"
+if [[ "$N_MODE" == "" ]]; then
+  N_MODE="%{$fg[red]%}[N]%{$reset_color%}"
+fi
+
+if [[ "$I_MODE" == "" ]]; then
+  I_MODE="%{$fg[white]%}[I]%{$reset_color%}"
 fi
 
 function vi_mode_prompt_info() {
-  echo "${${KEYMAP/vicmd/$MODE_INDICATOR}/(main|viins)/}"
+  echo "${${KEYMAP/vicmd/$N_MODE}/(main|viins)/$I_MODE}"
 }
 
 # define right prompt, if it wasn't defined by a theme
