@@ -121,16 +121,20 @@ if [[ -z $I_MODE ]]; then
   I_MODE="%{$fg[white]%}[I]%{$reset_color%}"
 fi
 
-function zle-line-init zle-keymap-select {
-  case $KEYMAP in
-    vicmd) RPROMPT=$N_MODE ;;
-    main|viins) RPROMPT=$I_MODE ;;
+function vim-mode-update-prompt {
+  case $ZSH_CUR_KEYMAP in
+    vicmd) CUR_MODE=$N_MODE ;;
+    main|viins) CUR_MODE=$I_MODE ;;
   esac
+  PS1=${PS1//($N_MODE|$I_MODE)/$CUR_MODE}
+  RPROMPT=${RPROMPT//($N_MODE|$I_MODE)/$CUR_MODE}
   zle reset-prompt
 }
 
-# Define right prompt, if it wasn't defined by a theme
-if [[ -z $RPS1 && -z $RPROMPT ]]; then
-    zle -N zle-line-init
-    zle -N zle-keymap-select
+if type -f hooks-add-hook 1>/dev/null 2>&1; then
+  hooks-add-hook zle_keymap_select_hook vim-mode-update-prompt
+  hooks-add-hook zle_line_init_hook vim-mode-update-prompt
+else
+  echo "zsh-hooks not loaded! Please load willghatch/zsh-hooks before zsh-vim-mode!"
 fi
+
