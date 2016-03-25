@@ -127,7 +127,7 @@ function vim-mode-update-prompt {
     main|viins) CUR_MODE=$I_MODE ;;
   esac
   PS1=${PS1//($N_MODE|$I_MODE)/$CUR_MODE}
-  RPROMPT=${RPROMPT//($N_MODE|$I_MODE)/$CUR_MODE}
+  RPS1=${${RPS1-$RPROMPT}//($N_MODE|$I_MODE)/$CUR_MODE}
   zle reset-prompt
 }
 
