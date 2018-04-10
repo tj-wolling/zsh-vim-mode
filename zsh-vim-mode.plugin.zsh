@@ -61,11 +61,6 @@ bindkey -M viins '\e[6~' history-beginning-search-forward
 # Shift + Tab
 bindkey -M viins '\e[Z'  reverse-menu-complete
 
-# TODO Use zsh 5.0.8 text objects & visual mode
-#bindkey -M vicmd 'ca'    change-around
-#bindkey -M vicmd 'ci'    change-in
-#bindkey -M vicmd 'da'    delete-around
-#bindkey -M vicmd 'di'    delete-in
 bindkey -M vicmd 'ga'    what-cursor-position
 bindkey -M vicmd 'gg'    beginning-of-history
 bindkey -M vicmd 'G '    end-of-history
@@ -138,3 +133,28 @@ else
   echo "zsh-hooks not loaded! Please load willghatch/zsh-hooks before zsh-vim-mode!"
 fi
 
+# enable parens, quotes and surround text-objects
+autoload -U select-bracketed
+zle -N select-bracketed
+for m in visual viopp; do
+    for c in {a,i}${(s..)^:-'()[]{}<>bB'}; do
+        bindkey -M $m $c select-bracketed
+    done
+done
+
+autoload -U select-quoted
+zle -N select-quoted
+for m in visual viopp; do
+  for c in {a,i}{\',\",\`}; do
+    bindkey -M $m $c select-quoted
+  done
+done
+
+autoload -Uz surround
+zle -N delete-surround surround
+zle -N change-surround surround
+zle -N add-surround surround
+bindkey -a cs change-surround
+bindkey -a ds delete-surround
+bindkey -a ys add-surround
+bindkey -M visual S add-surround
