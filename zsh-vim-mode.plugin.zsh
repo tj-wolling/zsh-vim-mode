@@ -158,3 +158,27 @@ bindkey -a cs change-surround
 bindkey -a ds delete-surround
 bindkey -a ys add-surround
 bindkey -M visual S add-surround
+
+# change cursor shape with mode
+autoload -U colors; colors
+
+if [[ $TERM != eterm-color && $TERM != dumb ]]; then
+  zle-keymap-select() {
+    if [ $KEYMAP = vicmd ]; then
+      if [[ -n $TMUX ]]; then
+        printf "\033Ptmux;\033\033]12;red\007\033\\"; printf "\033Ptmux;\033\033[2 q\033\\"
+      else
+        printf "\033]12;red\007"; printf "\033[2 q"
+      fi
+    else
+      if [[ -n $TMUX ]]; then
+        printf "\033Ptmux;\033\033]12;red\007\033\\"; printf "\033Ptmux;\033\033[5 q\033\\"
+      else
+        printf "\033]12;red\007"; printf "\033[5 q"
+      fi
+    fi
+  }
+  zle -N zle-keymap-select
+  zle-line-init() { zle -K viins }; zle -N zle-line-init
+  zle-line-finish() { zle -K viins }; zle -N zle-line-finish
+fi
