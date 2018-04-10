@@ -19,8 +19,8 @@ bindkey -M viins '^b'    backward-char
 bindkey -M viins '^d'    delete-char-or-list
 bindkey -M viins '^f'    forward-char
 bindkey -M viins '^k'    kill-line
-bindkey -M viins '^r'    history-incremental-search-backward
-bindkey -M viins '^s'    history-incremental-search-forward
+bindkey -M viins '^r'    history-incremental-pattern-search-backward
+bindkey -M viins '^s'    history-incremental-pattern-search-forward
 bindkey -M viins '^o'    history-beginning-search-backward
 bindkey -M viins '^p'    up-line-or-history
 bindkey -M viins '^n'    down-line-or-history
@@ -71,7 +71,7 @@ bindkey -M vicmd '^f'    forward-char
 bindkey -M vicmd '^i'    history-substring-search-down
 bindkey -M vicmd '^k'    kill-line
 bindkey -M vicmd '^r'    history-incremental-pattern-search-backward
-bindkey -M vicmd '^s'    history-incremental-search-forward
+bindkey -M vicmd '^s'    history-incremental-pattern-search-forward
 bindkey -M vicmd '^o'    history-beginning-search-backward
 bindkey -M vicmd '^p'    up-line-or-history
 bindkey -M vicmd '^n'    down-line-or-history
