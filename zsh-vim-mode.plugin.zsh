@@ -19,8 +19,8 @@ bindkey -M viins '^b'    backward-char
 bindkey -M viins '^d'    delete-char-or-list
 bindkey -M viins '^f'    forward-char
 bindkey -M viins '^k'    kill-line
-bindkey -M viins '^r'    history-incremental-search-backward
-bindkey -M viins '^s'    history-incremental-search-forward
+bindkey -M viins '^r'    history-incremental-pattern-search-backward
+bindkey -M viins '^s'    history-incremental-pattern-search-forward
 bindkey -M viins '^o'    history-beginning-search-backward
 bindkey -M viins '^p'    up-line-or-history
 bindkey -M viins '^n'    down-line-or-history
@@ -61,11 +61,6 @@ bindkey -M viins '\e[6~' history-beginning-search-forward
 # Shift + Tab
 bindkey -M viins '\e[Z'  reverse-menu-complete
 
-# TODO Use zsh 5.0.8 text objects & visual mode
-#bindkey -M vicmd 'ca'    change-around
-#bindkey -M vicmd 'ci'    change-in
-#bindkey -M vicmd 'da'    delete-around
-#bindkey -M vicmd 'di'    delete-in
 bindkey -M vicmd 'ga'    what-cursor-position
 bindkey -M vicmd 'gg'    beginning-of-history
 bindkey -M vicmd 'G '    end-of-history
@@ -76,7 +71,7 @@ bindkey -M vicmd '^f'    forward-char
 bindkey -M vicmd '^i'    history-substring-search-down
 bindkey -M vicmd '^k'    kill-line
 bindkey -M vicmd '^r'    history-incremental-pattern-search-backward
-bindkey -M vicmd '^s'    history-incremental-search-forward
+bindkey -M vicmd '^s'    history-incremental-pattern-search-forward
 bindkey -M vicmd '^o'    history-beginning-search-backward
 bindkey -M vicmd '^p'    up-line-or-history
 bindkey -M vicmd '^n'    down-line-or-history
@@ -138,3 +133,52 @@ else
   echo "zsh-hooks not loaded! Please load willghatch/zsh-hooks before zsh-vim-mode!"
 fi
 
+# enable parens, quotes and surround text-objects
+autoload -U select-bracketed
+zle -N select-bracketed
+for m in visual viopp; do
+    for c in {a,i}${(s..)^:-'()[]{}<>bB'}; do
+        bindkey -M $m $c select-bracketed
+    done
+done
+
+autoload -U select-quoted
+zle -N select-quoted
+for m in visual viopp; do
+  for c in {a,i}{\',\",\`}; do
+    bindkey -M $m $c select-quoted
+  done
+done
+
+autoload -Uz surround
+zle -N delete-surround surround
+zle -N change-surround surround
+zle -N add-surround surround
+bindkey -a cs change-surround
+bindkey -a ds delete-surround
+bindkey -a ys add-surround
+bindkey -M visual S add-surround
+
+# change cursor shape with mode
+autoload -U colors; colors
+
+if [[ $TERM != eterm-color && $TERM != dumb ]]; then
+  zle-keymap-select() {
+    if [ $KEYMAP = vicmd ]; then
+      if [[ -n $TMUX ]]; then
+        printf "\033Ptmux;\033\033]12;red\007\033\\"; printf "\033Ptmux;\033\033[2 q\033\\"
+      else
+        printf "\033]12;red\007"; printf "\033[2 q"
+      fi
+    else
+      if [[ -n $TMUX ]]; then
+        printf "\033Ptmux;\033\033]12;red\007\033\\"; printf "\033Ptmux;\033\033[5 q\033\\"
+      else
+        printf "\033]12;red\007"; printf "\033[5 q"
+      fi
+    fi
+  }
+  zle -N zle-keymap-select
+  zle-line-init() { zle -K viins }; zle -N zle-line-init
+  zle-line-finish() { zle -K viins }; zle -N zle-line-finish
+fi
