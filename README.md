@@ -1,32 +1,41 @@
 # zsh-vim-mode
-Sane bindings for zsh's vi mode so it behaves more vim like
-
-## Requirements
-
-* [zsh-hooks](http://github.com/willghatch/zsh-hooks) needs to be installed
+Sane bindings for zsh's vi mode
 
 ## Installation
 
-* This plugin can be installed with [zgen](http://github.com/tarjoilija/zgen) or [antigen](http://github.com/zsh-users/antigen) as described in the corresponding documentation.
+Install this plugin with any [ZSH plugin manager][], or just source it from
+your `.zshrc`.
 
-## Install with oh-my-zsh
-* Download the script or clone this repository in [oh-my-zsh](http://github.com/robbyrussell/oh-my-zsh) plugins directory:
+It uses [zsh-hooks][], which should be
+loaded prior to this plugin. (A fallback version is included in this repo,
+so installing *zsh-hooks* is optional.)
 
-        cd ~/.oh-my-zsh/custom/plugins
-        git clone git://github.com/houjunchen/zsh-vim-mode.git
-
-* Activate the plugin in `~/.zshrc` (**after** history-substring-search):
-
-        plugins=( [plugins...] zsh-vim-mode)
-
-* Source `~/.zshrc`  to take changes into account:
-
-        source ~/.zshrc
+[ZSH plugin manager]: https://github.com/unixorn/awesome-zsh-plugins/blob/master/README.md#installation
+[zsh-hooks]: http://github.com/willghatch/zsh-hooks
 
 ## Configuration
 
-* **Highly recommended:** If you want a visual indicator of the current vi mode in your (left or right) prompt, add `$I_MODE` somewhere to your `PS1` or `RPROMPT` variable. It will be replaced with the current mode automatically.  
-E.g. use `PS1="$I_MODE $PS1"` or `RPROMPT=$I_MODE` (or both) somewhere in your `.zshrc`.
+These options can be set in your `.zshrc`.
 
-* You can modify `$I_MODE` and `$N_MODE` if you don't like the defaults.
+### Mode-sensitive cursor styling
 
+Change the color and shape of the terminal cursor with:
+
+    ZSH_VIM_MODE_CURSOR_VICMD="green block"
+    ZSH_VIM_MODE_CURSOR_VIINS="#20d08a blinking bar"
+
+Use X11 color names or `#RRGGBB` notation for colors. The recognized
+style words are `steady`, `blinking`, `block`, `underline` and `bar`.
+
+If your cursor used to blink, and now it's stopped, you can fix that
+with `unset ZSH_VIM_MODE_CURSOR_DEFAULT`. The default (steady) is
+appropriate for most terminals.
+
+### Mode in prompt
+
+If you want a visual indicator of the current vi mode in your (left or right)
+prompt, add `$I_MODE` somewhere to your `PS1` or `RPROMPT` variable. It will be
+replaced with the current mode automatically.  E.g. use `PS1="$I_MODE $PS1"` or
+`RPROMPT=$I_MODE` somewhere in your `.zshrc`.
+
+You can modify `I_MODE` and `N_MODE` if you don't like the defaults.
