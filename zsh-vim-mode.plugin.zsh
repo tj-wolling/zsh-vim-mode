@@ -24,6 +24,7 @@ export KEYTIMEOUT=1
 autoload -U edit-command-line
 zle -N edit-command-line
 bindkey -M viins '^x^e'  edit-command-line
+bindkey -M vicmd '^v'    edit-command-line
 
 bindkey -M viins '^a'    beginning-of-line
 bindkey -M viins '^e'    end-of-line
