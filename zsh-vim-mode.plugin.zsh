@@ -160,25 +160,116 @@ bindkey -a ys add-surround
 bindkey -M visual S add-surround
 
 # change cursor shape with mode
-autoload -U colors; colors
 
-if [[ $TERM != eterm-color && $TERM != dumb ]]; then
-  zle-keymap-select() {
-    if [ $KEYMAP = vicmd ]; then
-      if [[ -n $TMUX ]]; then
-        printf "\033Ptmux;\033\033]12;red\007\033\\"; printf "\033Ptmux;\033\033[2 q\033\\"
-      else
-        printf "\033]12;red\007"; printf "\033[2 q"
+# These can be set in your .zshrc
+ZSH_VIM_MODE_CURSOR_VICMD=${ZSH_VIM_MODE_CURSOR:-}
+ZSH_VIM_MODE_CURSOR_VIINS=${ZSH_VIM_MODE_CURSOR_VIINS:-}
+
+# You may want to set this to '', if your cursor stops blinking
+# when you didn't ask it to. Some terminals, e.g., xterm, don't blink
+# initially but do blink after the set-to-default sequence. So this
+# forces it to steady, which should match most default setups.
+ZSH_VIM_MODE_CURSOR_DEFAULT=${ZSH_VIM_MODE_CURSOR_DEFAULT:-steady}
+
+send-terminal-sequence() {
+  local sequence="$1"
+  local is_tmux
+
+  # Allow forcing TMUX_PASSTHROUGH on. For example, if running tmux locally and
+  # running zsh remotely, where $TMUX is not set (and shouldn't be).
+  if [[ -n $TMUX_PASSTHROUGH ]] || [[ -n $TMUX ]]; then
+    is_tmux=1
+  fi
+
+  if [[ -n $is_tmux ]]; then
+    # Double each escape (see zshbuiltins() echo docs for backslash escapes)
+    # And wrap it in the TMUX DCS passthrough
+    sequence=$(echo -E "$sequence" \
+      | sed 's/\\\(e\|x27\|033\|u001[bB]\|U0000001[bB]\)/\\e\\e/g')
+    sequence="\ePtmux;$sequence\e\\"
+  fi
+  echo -n "$sequence"
+}
+
+set-terminal-cursor-style() {
+  local steady=
+  local shape=
+  local color=
+
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      blinking)  steady=0 ;;
+      steady)    steady=1 ;;
+      block)     shape=1 ;;
+      underline) shape=3 ;;
+      bar)       shape=5 ;;
+      *)         color="$1" ;;
+    esac
+    shift
+  done
+
+  # OSC Ps ; Pt BEL
+  #   Ps = 1 2  -> Change text cursor color to Pt.
+  #   Ps = 1 1 2  -> Reset text cursor color.
+
+  if [[ -z $color ]]; then
+    # Reset cursor color
+    send-terminal-sequence "\e]112\a"
+  else
+    # Note: Color is "specified by name or RGB specification as per
+    # XParseColor", according to XTerm docs
+    send-terminal-sequence "\e]12;${color}\a"
+  fi
+
+  # CSI Ps SP q
+  #   Set cursor style (DECSCUSR), VT520.
+  #     Ps = 0  -> blinking block.
+  #     Ps = 1  -> blinking block (default).
+  #     Ps = 2  -> steady block.
+  #     Ps = 3  -> blinking underline.
+  #     Ps = 4  -> steady underline.
+  #     Ps = 5  -> blinking bar (xterm).
+  #     Ps = 6  -> steady bar (xterm).
+
+  if [[ -z $steady && -z $shape ]]; then
+    send-terminal-sequence "\e[0 q"
+  else
+    [[ -z $shape ]] && shape=1
+    [[ -z $steady ]] && steady=1
+    send-terminal-sequence "\e[$((shape + steady)) q"
+  fi
+}
+
+case $TERM in
+  # TODO Query terminal capabilities with escape sequences
+  # TODO Support linux, iTerm2, and others?
+  #   http://vim.wikia.com/wiki/Change_cursor_shape_in_different_modes
+
+  dumb | linux | eterm-color )
+    ;;
+
+  * )
+    vim-mode-set-cursor-style() {
+      if [[ -z $ZSH_VIM_MODE_CURSOR_VICMD && -z $ZSH_VIM_MODE_CURSOR_VIINS ]]; then
+        return
       fi
-    else
-      if [[ -n $TMUX ]]; then
-        printf "\033Ptmux;\033\033]12;red\007\033\\"; printf "\033Ptmux;\033\033[5 q\033\\"
+
+      if [ $ZSH_CUR_KEYMAP = vicmd ]; then
+        set-terminal-cursor-style ${=ZSH_VIM_MODE_CURSOR_DEFAULT} ${=ZSH_VIM_MODE_CURSOR_VICMD}
       else
-        printf "\033]12;red\007"; printf "\033[5 q"
+        set-terminal-cursor-style ${=ZSH_VIM_MODE_CURSOR_DEFAULT} ${=ZSH_VIM_MODE_CURSOR_VIINS}
       fi
-    fi
-  }
-  zle -N zle-keymap-select
-  zle-line-init() { zle -K viins }; zle -N zle-line-init
-  zle-line-finish() { zle -K viins }; zle -N zle-line-finish
-fi
+    }
+
+    vim-mode-cursor-init-hook() { zle -K viins }
+
+    vim-mode-cursor-finish-hook() {
+      zle -K vicmd
+      set-terminal-cursor-style ${=ZSH_VIM_MODE_CURSOR_DEFAULT}
+    }
+
+    hooks-add-hook zle_keymap_select_hook vim-mode-set-cursor-style
+    hooks-add-hook zle_line_init_hook  vim-mode-cursor-init-hook
+    hooks-add-hook zle_line_finish_hook vim-mode-cursor-finish-hook
+    ;;
+esac
