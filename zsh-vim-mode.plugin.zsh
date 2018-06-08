@@ -163,17 +163,23 @@ if [[ -z $I_MODE ]]; then
 fi
 
 vim-ps1-mode() {
-    case $ZSH_CUR_KEYMAP in
-        vicmd) CUR_MODE=$N_MODE ;;
-        main|viins) CUR_MODE=$I_MODE ;;
-    esac
-    PS1=${PS1//($N_MODE|$I_MODE)/$CUR_MODE}
-    RPS1=${${RPS1-$RPROMPT}//($N_MODE|$I_MODE)/$CUR_MODE}
-    zle reset-prompt
+    local mode_is_set="$PS1$RPS1"
+    mode_is_set=${mode_is_set/*($N_MODE|$I_MODE)*/ZSH-VIM-MODE-IN-USE}
+
+    if [[ $mode_is_set = "ZSH-VIM-MODE-IN-USE" ]]; then
+        case $ZSH_CUR_KEYMAP in
+            vicmd) CUR_MODE=$N_MODE ;;
+            main|viins) CUR_MODE=$I_MODE ;;
+        esac
+
+        PS1=${PS1//($N_MODE|$I_MODE)/$CUR_MODE}
+        RPS1=${${RPS1-$RPROMPT}//($N_MODE|$I_MODE)/$CUR_MODE}
+
+        zle reset-prompt
+    fi
 }
 
 hooks-add-hook zle_keymap_select_hook vim-ps1-mode
-hooks-add-hook zle_line_init_hook  vim-ps1-mode
 
 
 # Change cursor shape with mode
