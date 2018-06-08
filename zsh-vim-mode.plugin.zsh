@@ -1,3 +1,15 @@
+local script_file="${(%):-%x}"
+
+if ! type -f hooks-add-hook 1>/dev/null 2>&1; then
+  local hooks_src="${script_file:h}/lib/zsh-hooks.plugin.zsh"
+  if [ -r "$hooks_src" ]; then
+    source "$hooks_src"
+  else
+    echo "zsh-hooks not loaded! Please load willghatch/zsh-hooks before zsh-vim-mode"
+  fi
+fi
+
+
 # Zsh's history-beginning-search-backward is very close to Vim's C-x C-l
 history-beginning-search-backward-then-append() {
   zle history-beginning-search-backward
@@ -126,12 +138,8 @@ function vim-mode-update-prompt {
   zle reset-prompt
 }
 
-if type -f hooks-add-hook 1>/dev/null 2>&1; then
-  hooks-add-hook zle_keymap_select_hook vim-mode-update-prompt
-  hooks-add-hook zle_line_init_hook vim-mode-update-prompt
-else
-  echo "zsh-hooks not loaded! Please load willghatch/zsh-hooks before zsh-vim-mode!"
-fi
+hooks-add-hook zle_keymap_select_hook vim-mode-update-prompt
+hooks-add-hook zle_line_init_hook vim-mode-update-prompt
 
 # enable parens, quotes and surround text-objects
 autoload -U select-bracketed
