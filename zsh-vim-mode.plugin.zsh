@@ -1,7 +1,7 @@
-local script_file="${(%):-%x}"
+local script_dir=$(dirname "$0")
 
 if ! type -f hooks-add-hook 1>/dev/null 2>&1; then
-    local hooks_src="${script_file:h}/lib/zsh-hooks.plugin.zsh"
+    local hooks_src="$script_dir/lib/zsh-hooks.plugin.zsh"
     if [ -r "$hooks_src" ]; then
         source "$hooks_src"
     else
@@ -149,16 +149,20 @@ bindkey -a ys add-surround
 bindkey -M visual S add-surround
 
 
+autoload -Uz colors; colors
+
+# Prompt display
+
 # If mode indicator wasn't setup by theme, define default
 if [[ -z $N_MODE ]]; then
-    N_MODE="%{$fg[red]%}[N]%{$reset_color%}"
+    N_MODE="%{$bg[white]$fg[black]%}[N]%{$reset_color%}"
 fi
 
 if [[ -z $I_MODE ]]; then
-    I_MODE="%{$fg[white]%}[I]%{$reset_color%}"
+    I_MODE="%{$reset_color%}[I]%{$reset_color%}"
 fi
 
-function vim-mode-update-prompt {
+vim-ps1-mode() {
     case $ZSH_CUR_KEYMAP in
         vicmd) CUR_MODE=$N_MODE ;;
         main|viins) CUR_MODE=$I_MODE ;;
@@ -168,8 +172,8 @@ function vim-mode-update-prompt {
     zle reset-prompt
 }
 
-hooks-add-hook zle_keymap_select_hook vim-mode-update-prompt
-hooks-add-hook zle_line_init_hook vim-mode-update-prompt
+hooks-add-hook zle_keymap_select_hook vim-ps1-mode
+hooks-add-hook zle_line_init_hook  vim-ps1-mode
 
 
 # Change cursor shape with mode
@@ -277,7 +281,6 @@ case $TERM in
         vim-mode-cursor-init-hook() { zle -K viins }
 
         vim-mode-cursor-finish-hook() {
-            zle -K vicmd
             set-terminal-cursor-style ${=ZSH_VIM_MODE_CURSOR_DEFAULT}
         }
 

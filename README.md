@@ -6,7 +6,7 @@ Sane bindings for zsh's vi mode
 Install this plugin with any [ZSH plugin manager][], or just source it from
 your `.zshrc`.
 
-It uses [zsh-hooks][], which should be
+It uses [willghatch/zsh-hooks][zsh-hooks], which should be
 loaded prior to this plugin. (A fallback version is included in this repo,
 so installing *zsh-hooks* is optional.)
 
@@ -33,9 +33,11 @@ appropriate for most terminals.
 
 ### Mode in prompt
 
-If you want a visual indicator of the current vi mode in your (left or right)
-prompt, add `$I_MODE` somewhere to your `PS1` or `RPROMPT` variable. It will be
-replaced with the current mode automatically.  E.g. use `PS1="$I_MODE $PS1"` or
-`RPROMPT=$I_MODE` somewhere in your `.zshrc`.
+If you want a visual indicator of the current vi mode in your (left or
+right) prompt, add `$I_MODE` somewhere to your `PS1` or `RPROMPT`
+variable. It will be replaced with the current mode automatically.
+E.g., use `PS1="$I_MODE $PS1"` or `RPROMPT=$I_MODE` somewhere in your
+`.zshrc`.
 
 You can modify `I_MODE` and `N_MODE` if you don't like the defaults.
+E.g., `I_MODE="%{$fg[red]%}INSERT%{$reset_color%}"`.
