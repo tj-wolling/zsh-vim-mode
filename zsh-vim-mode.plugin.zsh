@@ -1,14 +1,5 @@
 local script_dir=$(dirname "$0")
 
-if ! type -f hooks-add-hook 1>/dev/null 2>&1; then
-    local hooks_src="$script_dir/lib/zsh-hooks.plugin.zsh"
-    if [ -r "$hooks_src" ]; then
-        source "$hooks_src"
-    else
-        echo "zsh-hooks not loaded! Please load willghatch/zsh-hooks before zsh-vim-mode"
-    fi
-fi
-
 
 # Zsh's history-beginning-search-backward is very close to Vim's C-x C-l
 history-beginning-search-backward-then-append() {
@@ -149,6 +140,8 @@ bindkey -a ys add-surround
 bindkey -M visual S add-surround
 
 
+autoload -Uz add-zsh-hook
+autoload -Uz add-zle-hook-widget
 autoload -Uz colors; colors
 
 # Prompt display
@@ -167,7 +160,7 @@ vim-ps1-mode() {
     mode_is_set=${mode_is_set/*($N_MODE|$I_MODE)*/ZSH-VIM-MODE-IN-USE}
 
     if [[ $mode_is_set = "ZSH-VIM-MODE-IN-USE" ]]; then
-        case $ZSH_CUR_KEYMAP in
+        case $KEYMAP in
             vicmd) CUR_MODE=$N_MODE ;;
             main|viins) CUR_MODE=$I_MODE ;;
         esac
@@ -179,7 +172,7 @@ vim-ps1-mode() {
     fi
 }
 
-hooks-add-hook zle_keymap_select_hook vim-ps1-mode
+add-zle-hook-widget keymap-select vim-ps1-mode
 
 
 # Change cursor shape with mode
@@ -277,7 +270,7 @@ case $TERM in
                 return
             fi
 
-            if [ $ZSH_CUR_KEYMAP = vicmd ]; then
+            if [ $KEYMAP = vicmd ]; then
                 set-terminal-cursor-style ${=ZSH_VIM_MODE_CURSOR_DEFAULT} ${=ZSH_VIM_MODE_CURSOR_VICMD}
             else
                 set-terminal-cursor-style ${=ZSH_VIM_MODE_CURSOR_DEFAULT} ${=ZSH_VIM_MODE_CURSOR_VIINS}
@@ -290,8 +283,8 @@ case $TERM in
             set-terminal-cursor-style ${=ZSH_VIM_MODE_CURSOR_DEFAULT}
         }
 
-        hooks-add-hook zle_keymap_select_hook vim-mode-set-cursor-style
-        hooks-add-hook zle_line_init_hook  vim-mode-cursor-init-hook
-        hooks-add-hook zle_line_finish_hook vim-mode-cursor-finish-hook
+        add-zle-hook-widget keymap-select vim-mode-set-cursor-style
+        add-zle-hook-widget line-init vim-mode-cursor-init-hook
+        add-zle-hook-widget line-finish vim-mode-cursor-finish-hook
         ;;
 esac

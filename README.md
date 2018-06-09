@@ -6,12 +6,7 @@ Sane bindings for zsh's vi mode
 Install this plugin with any [ZSH plugin manager][], or just source it from
 your `.zshrc`.
 
-It uses [willghatch/zsh-hooks][zsh-hooks], which should be
-loaded prior to this plugin. (A fallback version is included in this repo,
-so installing *zsh-hooks* is optional.)
-
 [ZSH plugin manager]: https://github.com/unixorn/awesome-zsh-plugins/blob/master/README.md#installation
-[zsh-hooks]: http://github.com/willghatch/zsh-hooks
 
 ## Configuration
 
