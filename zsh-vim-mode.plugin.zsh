@@ -1,6 +1,3 @@
-local script_dir=$(dirname "$0")
-
-
 # Zsh's history-beginning-search-backward is very close to Vim's C-x C-l
 history-beginning-search-backward-then-append() {
     zle history-beginning-search-backward
@@ -140,52 +137,114 @@ bindkey -a ys add-surround
 bindkey -M visual S add-surround
 
 
+# ZLE keymap select actions
+
 autoload -Uz add-zsh-hook
 autoload -Uz add-zle-hook-widget
 autoload -Uz colors; colors
 
-# Prompt display
+# Upon <Esc> in isearch, it says it's in vicmd, but is really in viins
+# IF isearch was initiated from viins.
+#
+# Unfortunately, upon ^C in isearch, ZSH returns to the previous state,
+# but none of the zle hooks are called. So you'll end up in vicmd or
+# viins mode, but the cursor / prompt won't update. Hitting ^C again
+# does reset things.
 
-# If mode indicator wasn't setup by theme, define default
-if [[ -z $N_MODE ]]; then
-    N_MODE="%{$bg[white]$fg[black]%}[N]%{$reset_color%}"
-fi
+local -a vim_mode_keymap_funcs
 
-if [[ -z $I_MODE ]]; then
-    I_MODE="%{$reset_color%}[I]%{$reset_color%}"
-fi
+vim-mode-keymap-select    () { vim-mode-run-keymap-funcs $KEYMAP "$@" }
+vim-mode-keymap-select-up () { vim-mode-run-keymap-funcs $KEYMAP UPDATE "$@" }
+vim-mode-keymap-select-ex () { vim-mode-run-keymap-funcs $KEYMAP EXIT   "$@" }
 
-vim-ps1-mode() {
-    local mode_is_set="$PS1$RPS1"
-    mode_is_set=${mode_is_set/*($N_MODE|$I_MODE)*/ZSH-VIM-MODE-IN-USE}
+add-zle-hook-widget keymap-select  vim-mode-keymap-select
+add-zle-hook-widget isearch-update vim-mode-keymap-select-up
+# Need to know when we exit isearch with <C-e> or similar
+add-zle-hook-widget isearch-exit   vim-mode-keymap-select-ex
 
-    if [[ $mode_is_set = "ZSH-VIM-MODE-IN-USE" ]]; then
-        case $KEYMAP in
-            vicmd) CUR_MODE=$N_MODE ;;
-            main|viins) CUR_MODE=$I_MODE ;;
-        esac
+vim-mode-run-keymap-funcs () {
+    local keymap="$1"
+    local previous="$2"
 
-        PS1=${PS1//($N_MODE|$I_MODE)/$CUR_MODE}
-        RPS1=${${RPS1-$RPROMPT}//($N_MODE|$I_MODE)/$CUR_MODE}
-
-        zle reset-prompt
+    if [[ $previous = UPDATE ]]; then
+        if [[ $keymap = vicmd ]]; then
+            # Don't believe it
+            keymap=main
+        else
+            keymap=isearch
+        fi
     fi
+    #_dbug_note "$2 -> $1 ${(q)@[3,-1]}: $previous -> $keymap"
+
+    local func
+    for func in ${vim_mode_keymap_funcs[@]}; do
+        ${func} $keymap $previous
+    done
 }
 
-add-zle-hook-widget keymap-select vim-ps1-mode
+
+# If mode indicator wasn't setup by theme, define default
+: ${I_MODE=%k%f[I]%k%f}
+: ${N_MODE=%K{white}%F{black}[N]%k%f}
+# Command mode, AKA isearch
+: ${C_MODE=%K{cyan}%F{white}[C]%k%f}
+
+vim-mode-update-prompt () {
+    local keymap="$1"
+    local -i need_reset=0
+
+    # Ensure none of the modes has turned to empty; if so it will blow
+    # up the substitution; replace empty with a no-output pattern.
+    # Note that it must produce at least one character or there will
+    # likely be display problems.
+    local empty_mode=%837(l,, )
+    : ${I_MODE:=$empty_mode}
+    : ${N_MODE:=$empty_mode}
+    : ${C_MODE:=$empty_mode}
+
+    # In case user has changed the mode string since last call, look
+    # for the previous value as well as set of current values
+    local prev_mode="${VIM_MODE_PROMPT:-$empty_mode}"
+
+    local any_mode="(${(b)prev_mode}|${(b)I_MODE}|${(b)N_MODE}|${(b)C_MODE})"
+
+    : ${RPS1=$RPROMPT}
+    local prompts="$PS1$RPS1"
+
+    case $keymap in
+        main|viins) VIM_MODE_PROMPT=$I_MODE ;;
+        vicmd) VIM_MODE_PROMPT=$N_MODE ;;
+        isearch) VIM_MODE_PROMPT=$C_MODE ;;
+    esac
+
+    if [[ ${(SN)prompts#${~any_mode}} > 0 ]]; then
+        PS1=${PS1//${~any_mode}/$VIM_MODE_PROMPT}
+        RPS1=${RPS1//${~any_mode}/$VIM_MODE_PROMPT}
+        need_reset=1
+    elif [[ -o promptsubst && ${(SN)prompts#VIM_MODE_PROMPT} > 0 ]]; then
+        # Prompt string includes 'VIM_MODE_PROMPT', so reset prompt in case
+        # '${VIM_MODE_PROMPT}' needs to be substituted
+        need_reset=1
+    fi
+
+    (( $need_reset )) && zle reset-prompt
+}
+
+vim_mode_keymap_funcs+=vim-mode-update-prompt
 
 
 # Change cursor shape with mode
 
 # These can be set in your .zshrc
-ZSH_VIM_MODE_CURSOR_VICMD=${ZSH_VIM_MODE_CURSOR:-}
-ZSH_VIM_MODE_CURSOR_VIINS=${ZSH_VIM_MODE_CURSOR_VIINS:-}
+: ${ZSH_VIM_MODE_CURSOR_VIINS=}
+: ${ZSH_VIM_MODE_CURSOR_VICMD=}
+: ${ZSH_VIM_MODE_CURSOR_ISEARCH=}
 
 # You may want to set this to '', if your cursor stops blinking
 # when you didn't ask it to. Some terminals, e.g., xterm, don't blink
 # initially but do blink after the set-to-default sequence. So this
 # forces it to steady, which should match most default setups.
-ZSH_VIM_MODE_CURSOR_DEFAULT=${ZSH_VIM_MODE_CURSOR_DEFAULT:-steady}
+: ${ZSH_VIM_MODE_CURSOR_DEFAULT:=steady}
 
 send-terminal-sequence() {
     local sequence="$1"
@@ -256,6 +315,38 @@ set-terminal-cursor-style() {
     fi
 }
 
+vim-mode-set-cursor-style() {
+    local keymap="$1"
+
+    if [[ -n $ZSH_VIM_MODE_CURSOR_VICMD \
+       || -n $ZSH_VIM_MODE_CURSOR_VIINS \
+       || -n $ZSH_VIM_MODE_CURSOR_ISEARCH ]]
+    then
+        case $keymap in
+            viins|main)
+                set-terminal-cursor-style ${=ZSH_VIM_MODE_CURSOR_DEFAULT} \
+                    ${=ZSH_VIM_MODE_CURSOR_VIINS}
+                ;;
+            vicmd)
+                set-terminal-cursor-style ${=ZSH_VIM_MODE_CURSOR_DEFAULT} \
+                    ${=ZSH_VIM_MODE_CURSOR_VICMD}
+                ;;
+            isearch)
+                set-terminal-cursor-style ${=ZSH_VIM_MODE_CURSOR_DEFAULT} \
+                    ${=ZSH_VIM_MODE_CURSOR_ISEARCH}
+                ;;
+        esac
+    fi
+}
+
+vim-mode-cursor-init-hook() {
+    zle -K viins
+}
+
+vim-mode-cursor-finish-hook() {
+    set-terminal-cursor-style ${=ZSH_VIM_MODE_CURSOR_DEFAULT}
+}
+
 case $TERM in
     # TODO Query terminal capabilities with escape sequences
     # TODO Support linux, iTerm2, and others?
@@ -265,26 +356,10 @@ case $TERM in
         ;;
 
     * )
-        vim-mode-set-cursor-style() {
-            if [[ -z $ZSH_VIM_MODE_CURSOR_VICMD && -z $ZSH_VIM_MODE_CURSOR_VIINS ]]; then
-                return
-            fi
-
-            if [ $KEYMAP = vicmd ]; then
-                set-terminal-cursor-style ${=ZSH_VIM_MODE_CURSOR_DEFAULT} ${=ZSH_VIM_MODE_CURSOR_VICMD}
-            else
-                set-terminal-cursor-style ${=ZSH_VIM_MODE_CURSOR_DEFAULT} ${=ZSH_VIM_MODE_CURSOR_VIINS}
-            fi
-        }
-
-        vim-mode-cursor-init-hook() { zle -K viins }
-
-        vim-mode-cursor-finish-hook() {
-            set-terminal-cursor-style ${=ZSH_VIM_MODE_CURSOR_DEFAULT}
-        }
-
-        add-zle-hook-widget keymap-select vim-mode-set-cursor-style
-        add-zle-hook-widget line-init vim-mode-cursor-init-hook
-        add-zle-hook-widget line-finish vim-mode-cursor-finish-hook
+        vim_mode_keymap_funcs+=vim-mode-set-cursor-style
+        add-zle-hook-widget line-init      vim-mode-cursor-init-hook
+        add-zle-hook-widget line-finish    vim-mode-cursor-finish-hook
         ;;
 esac
+
+#_dbug_note () { print "$(date)\t" "$@" 2>> "/tmp/zsh-debug-vim-mode.log" >&2 }
