@@ -1,19 +1,9 @@
-# Zsh's history-beginning-search-backward is very close to Vim's C-x C-l
-history-beginning-search-backward-then-append() {
-    zle history-beginning-search-backward
-    zle vi-add-eol
-}
-zle -N history-beginning-search-backward-then-append
-
 bindkey -v
+
+# Don't wait too long after <Esc> to see if it's an arrow / function key
 export KEYTIMEOUT=1
 
-# Edit command line
-autoload -U edit-command-line
-zle -N edit-command-line
-bindkey -M viins '^x^e'  edit-command-line
-bindkey -M vicmd '^v'    edit-command-line
-
+# viins - Basic Emacs-like bindings {{{1
 bindkey -M viins '^a'    beginning-of-line
 bindkey -M viins '^e'    end-of-line
 bindkey -M viins '^b'    backward-char
@@ -31,7 +21,6 @@ bindkey -M viins '^u'    backward-kill-line
 bindkey -M viins '^h'    backward-delete-char
 bindkey -M viins '^?'    backward-delete-char
 bindkey -M viins '^_'    undo
-bindkey -M viins '^x^l'  history-beginning-search-backward-then-append
 bindkey -M viins '^x^r'  redisplay
 bindkey -M viins '\eb'   backward-word
 bindkey -M viins '\ed'   kill-word
@@ -62,6 +51,7 @@ bindkey -M viins '\e[6~' history-beginning-search-forward
 # Shift + Tab
 bindkey -M viins '\e[Z'  reverse-menu-complete
 
+# vicmd - Basic Emacs-like bindings {{{1
 bindkey -M vicmd 'ga'    what-cursor-position
 bindkey -M vicmd 'gg'    beginning-of-history
 bindkey -M vicmd 'G'     end-of-history
@@ -97,6 +87,13 @@ bindkey -M vicmd 'Y'     vi-yank-eol
 bindkey -M vicmd '\-'    vi-repeat-find
 bindkey -M vicmd '_'     vi-rev-repeat-find
 
+# edit-command-line {{{1
+autoload -U edit-command-line
+zle -N edit-command-line
+bindkey -M viins '^x^e'  edit-command-line
+bindkey -M vicmd '^v'    edit-command-line
+
+# history-substring-search {{{1
 if [[ -n $HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND ]]; then
     bindkey -M viins '^o' history-substring-search-up
     bindkey -M viins '\e[5~' history-substring-search-up
@@ -108,8 +105,16 @@ if [[ -n $HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND ]]; then
     bindkey -M vicmd '\e[6~' history-substring-search-down
 fi
 
+# Mimic Vim's C-x C-l {{{1
+history-beginning-search-backward-then-append() {
+    zle history-beginning-search-backward
+    zle vi-add-eol
+}
+zle -N history-beginning-search-backward-then-append
+bindkey -M viins '^x^l'  history-beginning-search-backward-then-append
 
-# Enable parens, quotes and surround text-objects
+
+# Enable parens, quotes and surround text-objects {{{1
 
 autoload -U select-bracketed
 zle -N select-bracketed
@@ -137,7 +142,7 @@ bindkey -a ys add-surround
 bindkey -M visual S add-surround
 
 
-# ZLE keymap select actions
+# Keymap mode indicator - Prompt string {{{1
 
 autoload -Uz add-zsh-hook
 autoload -Uz add-zle-hook-widget
@@ -249,7 +254,7 @@ function vi_mode_prompt_info() {
 vim_mode_keymap_funcs+=vim-mode-update-prompt
 
 
-# Change cursor shape with mode
+# Keymap mode indicator - Cursor shape {{{1
 
 # These can be set in your .zshrc
 : ${ZSH_VIM_MODE_CURSOR_VIINS=}
@@ -379,3 +384,4 @@ case $TERM in
 esac
 
 #_dbug_note () { print "$(date)\t" "$@" 2>> "/tmp/zsh-debug-vim-mode.log" >&2 }
+# vim:set ft=zsh sw=4 et fdm=marker:
