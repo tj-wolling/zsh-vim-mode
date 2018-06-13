@@ -293,7 +293,7 @@ set-terminal-cursor-style() {
             steady)    steady=1 ;;
             block)     shape=1 ;;
             underline) shape=3 ;;
-            bar)       shape=5 ;;
+            beam|bar)  shape=5 ;;
             *)         color="$1" ;;
         esac
         shift
