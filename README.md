@@ -1,16 +1,19 @@
 # zsh-vim-mode
 Sane bindings for zsh's vi mode
 
-## Installation
+### Additional key bindings
 
-Install this plugin with any [ZSH plugin manager][], or just source it from
-your `.zshrc`.
+In INSERT mode (`viins` keymap), most Emacs key bindings are available. Use
+'^A' and '^E' for beginning and end of line, '^R' for incremental search,
+etc. `<Esc>` or `<C-[>` quickly switches into NORMAL mode (`vicmd`).
 
-[ZSH plugin manager]: https://github.com/unixorn/awesome-zsh-plugins/blob/master/README.md#installation
+### Extra text objects
 
-## Configuration
-
-These options can be set in your `.zshrc`.
+ZSH has support for text objects since 5.0.8. This plugin adds bindings
+to give extra access in visual select mode. For example, when in NORMAL
+mode, type `v` to start a visual selection, then type `EE` to select two
+Words, then `S` to start the `add-surround` action, and `)` to complete
+it. The selected words will be surrounded by parentheses.
 
 ### Mode-sensitive cursor styling
 
@@ -67,3 +70,19 @@ to not match other text that may show up in your prompt.
 
 If your theme sets `$MODE_INDICATOR`, it will be used as a default
 for `MODE_INDICATOR_N` if nothing else is set.
+
+## Installation
+
+Install this plugin with any [ZSH plugin manager][], or just source it from
+your `.zshrc`.
+
+[ZSH plugin manager]: https://github.com/unixorn/awesome-zsh-plugins/blob/master/README.md#installation
+
+
+## License
+
+Some of this code is mangled together from blogs, mailing lists, random
+repositories, and other plugins. If you have any licensing concerns, please
+open an issue so it can be addressed. That being said, to the extent possible:
+
+This code is released under the MIT license.
