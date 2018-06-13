@@ -1,7 +1,7 @@
 bindkey -v
 
 # Don't wait too long after <Esc> to see if it's an arrow / function key
-export KEYTIMEOUT=1
+(( $+KEYTIMEOUT )) || export KEYTIMEOUT=1
 
 # viins - Basic Emacs-like bindings {{{1
 bindkey -M viins '^a'    beginning-of-line
