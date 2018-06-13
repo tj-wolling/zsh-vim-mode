@@ -182,52 +182,68 @@ vim-mode-run-keymap-funcs () {
     done
 }
 
+# Fake empty mode indicator that is unique and can be substituted in the
+# prompt string when mode changes. It outputs a single space because, on
+# some configurations, when [[ -n $RPS1 ]] but it prints nothing the display
+# gets confused.
+vim_mode_empty_mode_indicator="%837(l,, )"
 
 # If mode indicator wasn't setup by theme, define default
-: ${I_MODE=%k%f[I]%k%f}
-: ${N_MODE=%K{white}%F{black}[N]%k%f}
-# Command mode, AKA isearch
-: ${C_MODE=%K{cyan}%F{white}[C]%k%f}
+if ! (( $+MODE_INDICATOR_I || $+MODE_INDICATOR_N || $+MODE_INDICATOR_C )); then
+    : ${MODE_INDICATOR_I=$vim_mode_empty_mode_indicator}
+    : ${MODE_INDICATOR_N=${MODE_INDICATOR:-'%K{white}%F{black}[N]%k%f'}}
+    # Command mode, AKA isearch
+    : ${MODE_INDICATOR_C='%K{cyan}%F{white}[C]%k%f'}
+
+    if (( !$+RPS1 )); then
+        [[ -o promptsubst ]] \
+            && RPS1='${MODE_INDICATOR_PROMPT}' \
+            || RPS1="${MODE_INDICATOR_I}"
+    fi
+fi
 
 vim-mode-update-prompt () {
     local keymap="$1"
-    local -i need_reset=0
 
     # Ensure none of the modes has turned to empty; if so it will blow
     # up the substitution; replace empty with a no-output pattern.
     # Note that it must produce at least one character or there will
     # likely be display problems.
-    local empty_mode=%837(l,, )
-    : ${I_MODE:=$empty_mode}
-    : ${N_MODE:=$empty_mode}
-    : ${C_MODE:=$empty_mode}
+    local -A modes=(
+        e                             ${vim_mode_empty_mode_indicator}
+        I          ${MODE_INDICATOR_I:-$vim_mode_empty_mode_indicator}
+        N          ${MODE_INDICATOR_N:-$vim_mode_empty_mode_indicator}
+        C          ${MODE_INDICATOR_C:-$vim_mode_empty_mode_indicator}
+        # In case user has changed the mode string since last call, look
+        # for the previous value as well as set of current values
+        p     ${MODE_INDICATOR_PROMPT:-$vim_mode_empty_mode_indicator}
+    )
 
-    # In case user has changed the mode string since last call, look
-    # for the previous value as well as set of current values
-    local prev_mode="${VIM_MODE_PROMPT:-$empty_mode}"
+    # Pattern that will match any value from $modes
+    local any_mode=${(j:|:)${(bu)modes}}
 
-    local any_mode="(${(b)prev_mode}|${(b)I_MODE}|${(b)N_MODE}|${(b)C_MODE})"
-
-    : ${RPS1=$RPROMPT}
-    local prompts="$PS1$RPS1"
+    local prompts="$PS1${RPS1-$RPROMPT}"
 
     case $keymap in
-        main|viins) VIM_MODE_PROMPT=$I_MODE ;;
-        vicmd) VIM_MODE_PROMPT=$N_MODE ;;
-        isearch) VIM_MODE_PROMPT=$C_MODE ;;
+        main|viins) MODE_INDICATOR_PROMPT=$modes[I] ;;
+        vicmd)      MODE_INDICATOR_PROMPT=$modes[N] ;;
+        isearch)    MODE_INDICATOR_PROMPT=$modes[C] ;;
     esac
 
     if [[ ${(SN)prompts#${~any_mode}} > 0 ]]; then
-        PS1=${PS1//${~any_mode}/$VIM_MODE_PROMPT}
-        RPS1=${RPS1//${~any_mode}/$VIM_MODE_PROMPT}
-        need_reset=1
-    elif [[ -o promptsubst && ${(SN)prompts#VIM_MODE_PROMPT} > 0 ]]; then
-        # Prompt string includes 'VIM_MODE_PROMPT', so reset prompt in case
-        # '${VIM_MODE_PROMPT}' needs to be substituted
-        need_reset=1
+        PS1=${PS1//${~any_mode}/$MODE_INDICATOR_PROMPT}
+        : ${RPS1=$RPROMPT}
+        RPS1=${RPS1//${~any_mode}/$MODE_INDICATOR_PROMPT}
+    elif [[ -o promptsubst && ${(SN)prompts#MODE_INDICATOR_PROMPT} > 0 ]]; then
+        # Prompt string includes 'MODE_INDICATOR_PROMPT', so reset prompt in
+        # case '${MODE_INDICATOR_PROMPT}' needs to be substituted
     fi
 
-    (( $need_reset )) && zle reset-prompt
+    zle reset-prompt
+}
+
+function vi_mode_prompt_info() {
+    print ${MODE_INDICATOR_PROMPT}
 }
 
 vim_mode_keymap_funcs+=vim-mode-update-prompt

@@ -28,11 +28,42 @@ appropriate for most terminals.
 
 ### Mode in prompt
 
-If you want a visual indicator of the current vi mode in your (left or
-right) prompt, add `$I_MODE` somewhere to your `PS1` or `RPROMPT`
-variable. It will be replaced with the current mode automatically.
-E.g., use `PS1="$I_MODE $PS1"` or `RPROMPT=$I_MODE` somewhere in your
-`.zshrc`.
+If RPS1 / RPROMPT is not set, the mode indicator will be added
+automatically. The appearance can be set with:
 
-You can modify `I_MODE` and `N_MODE` if you don't like the defaults.
-E.g., `I_MODE="%{$fg[red]%}INSERT%{$reset_color%}"`.
+```zsh
+MODE_INDICATOR_I='%F{15}<%F{8}<<%f'
+MODE_INDICATOR_N='%F{9}<%F{1}<<%f'
+MODE_INDICATOR_C='%F{13}<%F{5}<<%f'
+```
+
+If you want to add this to your existing RPS1, there are two ways. If
+`setopt prompt_subst` is on, then simply add ${MODE_INDICATOR_PROMPT}
+to your RPS1, ensuring it is quoted:
+
+```zsh
+setopt PROMPT_SUBST
+# Note the single quotes
+RPS1='${MODE_INDICATOR_PROMPT} %B%F{255}<%b ${vcs_info_msg_0_}'
+```
+
+If you do not want to use prompt_subst, then set `MODE_INDICATOR_I` to
+a unique non-empty string. The other indicators should be unique, too.
+Then add the indicator string to your prompt, ensuring it is **not**
+quoted:
+
+```zsh
+MODE_INDICATOR_I='%99(l,, )'    # This turns into a single space
+MODE_INDICATOR_N='%F{9}<%F{1}'  # This is unique enough
+MODE_INDICATOR_C='%F{13}<%F{5}'
+# Note the double quotes
+RPS1="${MODE_INDICATOR_PROMPT} %B%F{15}<%b %*"
+```
+
+Each time the line editor keymap changes, the *text* of the prompt
+will be substituted, removing the previous mode indicator text and
+inserting the new. This is why the indicators must be unique enough
+to not match other text that may show up in your prompt.
+
+If your theme sets `$MODE_INDICATOR`, it will be used as a default
+for `MODE_INDICATOR_N` if nothing else is set.
