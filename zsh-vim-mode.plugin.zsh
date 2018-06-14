@@ -224,8 +224,9 @@ vim-mode-update-prompt () {
         p     ${MODE_INDICATOR_PROMPT:-$vim_mode_empty_mode_indicator}
     )
 
-    # Pattern that will match any value from $modes
-    local any_mode=${(j:|:)${(bu)modes}}
+    # Pattern that will match any value from $modes. Reverse sort, so that
+    # if one pattern is a prefix of a longer one, it will be tried after.
+    local any_mode=${(j:|:)${(Obu)modes}}
 
     local prompts="$PS1${RPS1-$RPROMPT}"
 
