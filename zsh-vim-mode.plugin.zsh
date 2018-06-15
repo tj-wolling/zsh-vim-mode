@@ -174,12 +174,15 @@ vim-mode-run-keymap-funcs () {
     if [[ $previous = UPDATE ]]; then
         if [[ $keymap = vicmd ]]; then
             # Don't believe it
-            keymap=main
+            keymap=viins
         else
             keymap=isearch
         fi
     fi
     #_dbug_note "$2 -> $1 ${(q)@[3,-1]}: $previous -> $keymap"
+
+    # Can be used by prompt themes, etc.
+    VIM_MODE_KEYMAP=$keymap
 
     local func
     for func in ${vim_mode_keymap_funcs[@]}; do
@@ -356,7 +359,7 @@ vim-mode-set-cursor-style() {
        || -n $ZSH_VIM_MODE_CURSOR_ISEARCH ]]
     then
         case $keymap in
-            viins|main)
+            main|viins)
                 set-terminal-cursor-style ${=ZSH_VIM_MODE_CURSOR_DEFAULT} \
                     ${=ZSH_VIM_MODE_CURSOR_VIINS}
                 ;;
