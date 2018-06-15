@@ -59,7 +59,7 @@ bindkey -M vicmd '^a'    beginning-of-line
 bindkey -M vicmd '^b'    backward-char
 bindkey -M vicmd '^e'    end-of-line
 bindkey -M vicmd '^f'    forward-char
-bindkey -M vicmd '^i'    history-substring-search-down
+bindkey -M vicmd '^i'    history-beginning-search-forward
 bindkey -M vicmd '^k'    kill-line
 bindkey -M vicmd '^r'    history-incremental-pattern-search-backward
 bindkey -M vicmd '^s'    history-incremental-pattern-search-forward
@@ -95,12 +95,13 @@ bindkey -M vicmd '^v'    edit-command-line
 
 # history-substring-search {{{1
 if [[ -n $HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND ]]; then
-    bindkey -M viins '^o' history-substring-search-up
+    bindkey -M viins '^i'    history-substring-search-down
+    bindkey -M viins '^o'    history-substring-search-up
     bindkey -M viins '\e[5~' history-substring-search-up
     bindkey -M viins '\e[6~' history-substring-search-down
 
-    bindkey -M vicmd '^o' history-substring-search-up
-    bindkey -M vicmd '^i' history-substring-search-down
+    bindkey -M vicmd '^i'    history-substring-search-down
+    bindkey -M vicmd '^o'    history-substring-search-up
     bindkey -M vicmd '\e[5~' history-substring-search-up
     bindkey -M vicmd '\e[6~' history-substring-search-down
 fi

@@ -48,14 +48,14 @@ to your RPS1, ensuring it is quoted:
 ```zsh
 setopt PROMPT_SUBST
 # Note the single quotes
-RPS1='${MODE_INDICATOR_PROMPT} %B%F{255}<%b ${vcs_info_msg_0_}'
+RPS1='${MODE_INDICATOR_PROMPT} ${vcs_info_msg_0_}'
 ```
 
 If you do not want to use prompt_subst, then it must **not** be
 quoted:
 
 ```zsh
-set NO_prompt_subst
+setopt NO_prompt_subst
 MODE_INDICATOR_VICMD='%F{9}<%F{1}<<%f'
 MODE_INDICATOR_SEARCH='%F{13}<%F{5}<<%f'
 # Note the double quotes
