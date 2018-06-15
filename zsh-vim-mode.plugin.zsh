@@ -106,14 +106,6 @@ if [[ -n $HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND ]]; then
     bindkey -M vicmd '\e[6~' history-substring-search-down
 fi
 
-# Mimic Vim's C-x C-l {{{1
-history-beginning-search-backward-then-append() {
-    zle history-beginning-search-backward
-    zle vi-add-eol
-}
-zle -N history-beginning-search-backward-then-append
-bindkey -M viins '^x^l'  history-beginning-search-backward-then-append
-
 
 # Enable parens, quotes and surround text-objects {{{1
 
