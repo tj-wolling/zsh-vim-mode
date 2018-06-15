@@ -154,10 +154,10 @@ autoload -Uz colors; colors
 (( $+MODE_INDICATOR_N )) && : ${MODE_INDICATOR_VICMD=MODE_INDICATOR_N}
 (( $+MODE_INDICATOR_C )) && : ${MODE_INDICATOR_SEARCH=MODE_INDICATOR_C}
 
-# Upon <Esc> in search, it says it's in vicmd, but is really in viins
-# IF search was initiated from viins.
+# Upon <Esc> in isearch, it says it's in vicmd, but is really in viins
+# IF isearch was initiated from viins.
 #
-# Unfortunately, upon ^C in search, ZSH returns to the previous state,
+# Unfortunately, upon ^C in isearch, ZSH returns to the previous state,
 # but none of the zle hooks are called. So you'll end up in vicmd or
 # viins mode, but the cursor / prompt won't update. Hitting ^C again
 # does reset things.
@@ -170,7 +170,7 @@ vim-mode-keymap-select-ex () { vim-mode-run-keymap-funcs $KEYMAP EXIT   "$@" }
 
 add-zle-hook-widget keymap-select  vim-mode-keymap-select
 add-zle-hook-widget isearch-update vim-mode-keymap-select-up
-# Need to know when we exit search with <C-e> or similar
+# Need to know when we exit isearch with <C-e> or similar
 add-zle-hook-widget isearch-exit   vim-mode-keymap-select-ex
 
 vim-mode-run-keymap-funcs () {
@@ -182,7 +182,7 @@ vim-mode-run-keymap-funcs () {
             # Don't believe it
             keymap=viins
         else
-            keymap=search
+            keymap=isearch
         fi
     fi
     #_dbug_note "$2 -> $1 ${(q)@[3,-1]}: $previous -> $keymap"
@@ -254,7 +254,7 @@ vim-mode-update-prompt () {
 
     case $keymap in
         vicmd)        MODE_INDICATOR_PROMPT=${MODE_INDICATOR_VICMD} ;;
-        search)       MODE_INDICATOR_PROMPT=${MODE_INDICATOR_SEARCH} ;;
+        isearch)      MODE_INDICATOR_PROMPT=${MODE_INDICATOR_SEARCH} ;;
         main|viins|*) MODE_INDICATOR_PROMPT=${MODE_INDICATOR_VIINS} ;;
     esac
 
@@ -383,7 +383,7 @@ vim-mode-set-cursor-style() {
                 set-terminal-cursor-style ${=MODE_CURSOR_DEFAULT} \
                     ${=MODE_CURSOR_VICMD}
                 ;;
-            search)
+            isearch)
                 set-terminal-cursor-style ${=MODE_CURSOR_DEFAULT} \
                     ${=MODE_CURSOR_SEARCH}
                 ;;

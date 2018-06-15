@@ -71,7 +71,7 @@ for `MODE_INDICATOR_VICMD` if nothing else is set.
 
 ### Mode for integration with other plugins
 
-The `$VIM_MODE_KEYMAP` variable is set to `viins`, `vicmd` or `search`,
+The `$VIM_MODE_KEYMAP` variable is set to `viins`, `vicmd` or `isearch`,
 for easy inspection from other plugins.
 
 ## Installation
