@@ -148,10 +148,15 @@ autoload -Uz add-zsh-hook
 autoload -Uz add-zle-hook-widget
 autoload -Uz colors; colors
 
-# Upon <Esc> in isearch, it says it's in vicmd, but is really in viins
-# IF isearch was initiated from viins.
+# Compatibility with old variable names
+(( $+MODE_INDICATOR_I )) && : ${MODE_INDICATOR_VIINS=MODE_INDICATOR_I}
+(( $+MODE_INDICATOR_N )) && : ${MODE_INDICATOR_VICMD=MODE_INDICATOR_N}
+(( $+MODE_INDICATOR_C )) && : ${MODE_INDICATOR_SEARCH=MODE_INDICATOR_C}
+
+# Upon <Esc> in search, it says it's in vicmd, but is really in viins
+# IF search was initiated from viins.
 #
-# Unfortunately, upon ^C in isearch, ZSH returns to the previous state,
+# Unfortunately, upon ^C in search, ZSH returns to the previous state,
 # but none of the zle hooks are called. So you'll end up in vicmd or
 # viins mode, but the cursor / prompt won't update. Hitting ^C again
 # does reset things.
@@ -164,7 +169,7 @@ vim-mode-keymap-select-ex () { vim-mode-run-keymap-funcs $KEYMAP EXIT   "$@" }
 
 add-zle-hook-widget keymap-select  vim-mode-keymap-select
 add-zle-hook-widget isearch-update vim-mode-keymap-select-up
-# Need to know when we exit isearch with <C-e> or similar
+# Need to know when we exit search with <C-e> or similar
 add-zle-hook-widget isearch-exit   vim-mode-keymap-select-ex
 
 vim-mode-run-keymap-funcs () {
@@ -176,7 +181,7 @@ vim-mode-run-keymap-funcs () {
             # Don't believe it
             keymap=viins
         else
-            keymap=isearch
+            keymap=search
         fi
     fi
     #_dbug_note "$2 -> $1 ${(q)@[3,-1]}: $previous -> $keymap"
@@ -194,24 +199,24 @@ vim-mode-run-keymap-funcs () {
 # prompt string when mode changes. If ZLE_RPROMPT_INDENT is < 1, zle gets
 # confused if $RPS1 isn't empty but printing it doesn't move the cursor.
 (( ${ZLE_RPROMPT_INDENT:-1} > 0 )) \
-    && vim_mode_empty_indicator="%837(l,,)" \
-    || vim_mode_empty_indicator="%837(l,, )"
+    && vim_mode_indicator_pfx="%837(l,,)" \
+    || vim_mode_indicator_pfx="%837(l,, )"
 
 # If mode indicator wasn't setup by theme, define default
 vim-mode-set-up-indicators () {
-    local indicator=${MODE_INDICATOR_N-${MODE_INDICATOR-DEFAULT}}
-    local set=$(($+MODE_INDICATOR_I + $+MODE_INDICATOR_N + $+MODE_INDICATOR_C))
+    local indicator=${MODE_INDICATOR_VICMD-${MODE_INDICATOR-DEFAULT}}
+    local set=$(($+MODE_INDICATOR_VIINS + $+MODE_INDICATOR_VICMD + $+MODE_INDICATOR_SEARCH))
 
     if [[ -n $indicator || $set > 0 ]]; then
         if (( ! $set )); then
             if [[ $indicator = DEFAULT ]]; then
-                MODE_INDICATOR_N='%F{10}<%F{2}<<%f'
-                MODE_INDICATOR_C='%F{13}<%F{5}<<%f'
+                MODE_INDICATOR_VICMD='%F{10}<%F{2}<<%f'
+                MODE_INDICATOR_SEARCH='%F{13}<%F{5}<<%f'
             else
-                MODE_INDICATOR_N=$indicator
+                MODE_INDICATOR_VICMD=$indicator
             fi
 
-            MODE_INDICATOR_PROMPT=${MODE_INDICATOR_I:-$vim_mode_empty_indicator}
+            MODE_INDICATOR_PROMPT=${vim_mode_indicator_pfx}${MODE_INDICATOR_VIINS}
             if (( !$+RPS1 )); then
                 [[ -o promptsubst ]] \
                     && RPS1='${MODE_INDICATOR_PROMPT}' \
@@ -231,13 +236,13 @@ vim-mode-update-prompt () {
     (( $+MODE_INDICATOR_PROMPT )) || return
 
     local -A modes=(
-        e                             ${vim_mode_empty_indicator}
-        I          ${MODE_INDICATOR_I:-$vim_mode_empty_indicator}
-        N          ${MODE_INDICATOR_N:-$vim_mode_empty_indicator}
-        C          ${MODE_INDICATOR_C:-$vim_mode_empty_indicator}
+        e  ${vim_mode_indicator_pfx}
+        I  ${vim_mode_indicator_pfx}${MODE_INDICATOR_VIINS}
+        N  ${vim_mode_indicator_pfx}${MODE_INDICATOR_VICMD}
+        C  ${vim_mode_indicator_pfx}${MODE_INDICATOR_SEARCH}
         # In case user has changed the mode string since last call, look
         # for the previous value as well as set of current values
-        p     ${MODE_INDICATOR_PROMPT:-$vim_mode_empty_indicator}
+        p  ${vim_mode_indicator_pfx}${MODE_INDICATOR_PROMPT}
     )
 
     # Pattern that will match any value from $modes. Reverse sort, so that
@@ -247,15 +252,15 @@ vim-mode-update-prompt () {
     local prompts="$PS1${RPS1-$RPROMPT}"
 
     case $keymap in
-        main|viins) MODE_INDICATOR_PROMPT=$modes[I] ;;
-        vicmd)      MODE_INDICATOR_PROMPT=$modes[N] ;;
-        isearch)    MODE_INDICATOR_PROMPT=$modes[C] ;;
+        vicmd)        MODE_INDICATOR_PROMPT=${MODE_INDICATOR_VICMD} ;;
+        search)       MODE_INDICATOR_PROMPT=${MODE_INDICATOR_SEARCH} ;;
+        main|viins|*) MODE_INDICATOR_PROMPT=${MODE_INDICATOR_VIINS} ;;
     esac
 
     if [[ ${(SN)prompts#${~any_mode}} > 0 ]]; then
-        PS1=${PS1//${~any_mode}/$MODE_INDICATOR_PROMPT}
+        PS1=${PS1//${~any_mode}/${vim_mode_indicator_pfx}$MODE_INDICATOR_PROMPT}
         : ${RPS1=$RPROMPT}
-        RPS1=${RPS1//${~any_mode}/$MODE_INDICATOR_PROMPT}
+        RPS1=${RPS1//${~any_mode}/${vim_mode_indicator_pfx}$MODE_INDICATOR_PROMPT}
     fi
 
     zle reset-prompt
@@ -270,17 +275,27 @@ vim_mode_keymap_funcs+=vim-mode-update-prompt
 
 
 # Keymap mode indicator - Cursor shape {{{1
+#
+# Compatibility with old variable names
+(( $+ZSH_VIM_MODE_CURSOR_VIINS )) \
+    && : ${MODE_CURSOR_VIINS=ZSH_VIM_MODE_CURSOR_VIINS}
+(( $+ZSH_VIM_MODE_CURSOR_VICMD )) \
+    && : ${MODE_CURSOR_VICMD=ZSH_VIM_MODE_CURSOR_VICMD}
+(( $+ZSH_VIM_MODE_CURSOR_ISEARCH )) \
+    && : ${MODE_CURSOR_SEARCH=ZSH_VIM_MODE_CURSOR_ISEARCH}
+(( $+ZSH_VIM_MODE_CURSOR_DEFAULT )) \
+    && : ${MODE_CURSOR_DEFAULT=ZSH_VIM_MODE_CURSOR_DEFAULT}
 
 # These can be set in your .zshrc
-: ${ZSH_VIM_MODE_CURSOR_VIINS=}
-: ${ZSH_VIM_MODE_CURSOR_VICMD=}
-: ${ZSH_VIM_MODE_CURSOR_ISEARCH=}
+: ${MODE_CURSOR_VIINS=}
+: ${MODE_CURSOR_VICMD=}
+: ${MODE_CURSOR_SEARCH=}
 
 # You may want to set this to '', if your cursor stops blinking
 # when you didn't ask it to. Some terminals, e.g., xterm, don't blink
 # initially but do blink after the set-to-default sequence. So this
 # forces it to steady, which should match most default setups.
-: ${ZSH_VIM_MODE_CURSOR_DEFAULT:=steady}
+: ${MODE_CURSOR_DEFAULT:=steady}
 
 send-terminal-sequence() {
     local sequence="$1"
@@ -354,22 +369,22 @@ set-terminal-cursor-style() {
 vim-mode-set-cursor-style() {
     local keymap="$1"
 
-    if [[ -n $ZSH_VIM_MODE_CURSOR_VICMD \
-       || -n $ZSH_VIM_MODE_CURSOR_VIINS \
-       || -n $ZSH_VIM_MODE_CURSOR_ISEARCH ]]
+    if [[ -n $MODE_CURSOR_VICMD \
+       || -n $MODE_CURSOR_VIINS \
+       || -n $MODE_CURSOR_SEARCH ]]
     then
         case $keymap in
             main|viins)
-                set-terminal-cursor-style ${=ZSH_VIM_MODE_CURSOR_DEFAULT} \
-                    ${=ZSH_VIM_MODE_CURSOR_VIINS}
+                set-terminal-cursor-style ${=MODE_CURSOR_DEFAULT} \
+                    ${=MODE_CURSOR_VIINS}
                 ;;
             vicmd)
-                set-terminal-cursor-style ${=ZSH_VIM_MODE_CURSOR_DEFAULT} \
-                    ${=ZSH_VIM_MODE_CURSOR_VICMD}
+                set-terminal-cursor-style ${=MODE_CURSOR_DEFAULT} \
+                    ${=MODE_CURSOR_VICMD}
                 ;;
-            isearch)
-                set-terminal-cursor-style ${=ZSH_VIM_MODE_CURSOR_DEFAULT} \
-                    ${=ZSH_VIM_MODE_CURSOR_ISEARCH}
+            search)
+                set-terminal-cursor-style ${=MODE_CURSOR_DEFAULT} \
+                    ${=MODE_CURSOR_SEARCH}
                 ;;
         esac
     fi
@@ -380,7 +395,7 @@ vim-mode-cursor-init-hook() {
 }
 
 vim-mode-cursor-finish-hook() {
-    set-terminal-cursor-style ${=ZSH_VIM_MODE_CURSOR_DEFAULT}
+    set-terminal-cursor-style ${=MODE_CURSOR_DEFAULT}
 }
 
 case $TERM in
