@@ -196,9 +196,9 @@ vim-mode-run-keymap-funcs () {
     done
 }
 
-# Fake empty mode indicator that is unique and can be substituted in the
-# prompt string when mode changes. If ZLE_RPROMPT_INDENT is < 1, zle gets
-# confused if $RPS1 isn't empty but printing it doesn't move the cursor.
+# Unique prefix to tag the mode indicator text in the prompt.
+# If ZLE_RPROMPT_INDENT is < 1, zle gets confused if $RPS1 isn't empty but
+# printing it doesn't move the cursor.
 (( ${ZLE_RPROMPT_INDENT:-1} > 0 )) \
     && vim_mode_indicator_pfx="%837(l,,)" \
     || vim_mode_indicator_pfx="%837(l,, )"
@@ -250,18 +250,19 @@ vim-mode-update-prompt () {
     # if one pattern is a prefix of a longer one, it will be tried after.
     local any_mode=${(j:|:)${(Obu)modes}}
 
-    local prompts="$PS1${RPS1-$RPROMPT}"
+    (( $+RPROMPT )) && : ${RPS1=$RPROMPT}
+    local prompts="$PS1 $RPS1"
 
     case $keymap in
         vicmd)        MODE_INDICATOR_PROMPT=${MODE_INDICATOR_VICMD} ;;
         isearch)      MODE_INDICATOR_PROMPT=${MODE_INDICATOR_SEARCH} ;;
         main|viins|*) MODE_INDICATOR_PROMPT=${MODE_INDICATOR_VIINS} ;;
     esac
+    MODE_INDICATOR_PROMPT="$vim_mode_indicator_pfx$MODE_INDICATOR_PROMPT"
 
     if [[ ${(SN)prompts#${~any_mode}} > 0 ]]; then
-        PS1=${PS1//${~any_mode}/${vim_mode_indicator_pfx}$MODE_INDICATOR_PROMPT}
-        : ${RPS1=$RPROMPT}
-        RPS1=${RPS1//${~any_mode}/${vim_mode_indicator_pfx}$MODE_INDICATOR_PROMPT}
+        PS1=${PS1//${~any_mode}/$MODE_INDICATOR_PROMPT}
+        RPS1=${RPS1//${~any_mode}/$MODE_INDICATOR_PROMPT}
     fi
 
     zle reset-prompt
