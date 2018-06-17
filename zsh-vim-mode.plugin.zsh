@@ -139,6 +139,8 @@ vim-mode-bindkey viins vicmd -- backward-word                      Ctrl-Left
 vim-mode-bindkey viins vicmd -- backward-word                      Alt-Left
 vim-mode-bindkey viins vicmd -- forward-word                       Ctrl-Right
 vim-mode-bindkey viins vicmd -- forward-word                       Alt-Right
+vim-mode-bindkey viins vicmd -- up-line-or-history                 PgUp
+vim-mode-bindkey viins vicmd -- down-line-or-history               PgDown
 
 vim-mode-bindkey viins       -- overwrite-mode                     Insert
 vim-mode-bindkey viins       -- delete-char                        Delete
@@ -163,13 +165,13 @@ vim-mode-bindkey       vicmd -- edit-command-line                  '^V'
 if [[ -n $HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND ]]; then
     vim-mode-bindkey viins vicmd -- history-substring-search-up         '^P'
     vim-mode-bindkey viins vicmd -- history-substring-search-down       '^N'
-    vim-mode-bindkey viins vicmd -- history-substring-search-up         PgUp
-    vim-mode-bindkey viins vicmd -- history-substring-search-down       PgDown
+    vim-mode-bindkey viins vicmd -- history-substring-search-up         Up
+    vim-mode-bindkey viins vicmd -- history-substring-search-down       Down
 else
     vim-mode-bindkey viins vicmd -- history-beginning-search-backward   '^P'
     vim-mode-bindkey viins vicmd -- history-beginning-search-forward    '^N'
-    vim-mode-bindkey viins vicmd -- history-beginning-search-backward   PgUp
-    vim-mode-bindkey viins vicmd -- history-beginning-search-forward    PgDown
+    vim-mode-bindkey viins vicmd -- history-beginning-search-backward   Up
+    vim-mode-bindkey viins vicmd -- history-beginning-search-forward    Down
 fi
 
 
