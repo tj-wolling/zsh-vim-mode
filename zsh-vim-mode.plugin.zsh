@@ -12,9 +12,6 @@ bindkey -M viins '^f'    forward-char
 bindkey -M viins '^k'    kill-line
 bindkey -M viins '^r'    history-incremental-pattern-search-backward
 bindkey -M viins '^s'    history-incremental-pattern-search-forward
-bindkey -M viins '^o'    history-beginning-search-backward
-bindkey -M viins '^p'    up-line-or-history
-bindkey -M viins '^n'    down-line-or-history
 bindkey -M viins '^y'    yank
 bindkey -M viins '^w'    backward-kill-word
 bindkey -M viins '^u'    backward-kill-line
@@ -45,9 +42,6 @@ bindkey -M viins '\e[4~' end-of-line
 # Insert / Delete
 bindkey -M viins '\e[2~' overwrite-mode
 bindkey -M viins '\e[3~' delete-char
-# Page up / Page down
-bindkey -M viins '\e[5~' history-beginning-search-backward
-bindkey -M viins '\e[6~' history-beginning-search-forward
 # Shift + Tab
 bindkey -M viins '\e[Z'  reverse-menu-complete
 
@@ -59,13 +53,9 @@ bindkey -M vicmd '^a'    beginning-of-line
 bindkey -M vicmd '^b'    backward-char
 bindkey -M vicmd '^e'    end-of-line
 bindkey -M vicmd '^f'    forward-char
-bindkey -M vicmd '^i'    history-beginning-search-forward
 bindkey -M vicmd '^k'    kill-line
 bindkey -M vicmd '^r'    history-incremental-pattern-search-backward
 bindkey -M vicmd '^s'    history-incremental-pattern-search-forward
-bindkey -M vicmd '^o'    history-beginning-search-backward
-bindkey -M vicmd '^p'    up-line-or-history
-bindkey -M vicmd '^n'    down-line-or-history
 bindkey -M vicmd '^y'    yank
 bindkey -M vicmd '^w'    backward-kill-word
 bindkey -M vicmd '^u'    backward-kill-line
@@ -77,9 +67,6 @@ bindkey -M vicmd '\eb'   backward-word
 bindkey -M vicmd '\ed'   kill-word
 bindkey -M vicmd '\ef'   forward-word
 bindkey -M vicmd '\e.'   insert-last-word
-# Page up / Page down
-bindkey -M vicmd '\e[5~' history-beginning-search-backward
-bindkey -M vicmd '\e[6~' history-beginning-search-forward
 bindkey -M vicmd 'H'     run-help
 bindkey -M vicmd 'u'     undo
 bindkey -M vicmd 'U'     redo
@@ -95,15 +82,27 @@ bindkey -M vicmd '^v'    edit-command-line
 
 # history-substring-search {{{1
 if [[ -n $HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND ]]; then
-    bindkey -M viins '^i'    history-substring-search-down
-    bindkey -M viins '^o'    history-substring-search-up
+    bindkey -M viins '^p'    history-substring-search-up
+    bindkey -M viins '^n'    history-substring-search-down
+    bindkey -M vicmd '^p'    history-substring-search-up
+    bindkey -M vicmd '^n'    history-substring-search-down
+
+    # Page up / Page down
     bindkey -M viins '\e[5~' history-substring-search-up
     bindkey -M viins '\e[6~' history-substring-search-down
-
-    bindkey -M vicmd '^i'    history-substring-search-down
-    bindkey -M vicmd '^o'    history-substring-search-up
     bindkey -M vicmd '\e[5~' history-substring-search-up
     bindkey -M vicmd '\e[6~' history-substring-search-down
+else
+    bindkey -M viins '^p' history-beginning-search-backward
+    bindkey -M viins '^n' history-beginning-search-forward
+    bindkey -M vicmd '^p' history-beginning-search-backward
+    bindkey -M vicmd '^n' history-beginning-search-forward
+
+    # Page up / Page down
+    bindkey -M viins '\e[5~' history-beginning-search-backward
+    bindkey -M viins '\e[6~' history-beginning-search-forward
+    bindkey -M vicmd '\e[5~' history-beginning-search-backward
+    bindkey -M vicmd '\e[6~' history-beginning-search-forward
 fi
 
 
