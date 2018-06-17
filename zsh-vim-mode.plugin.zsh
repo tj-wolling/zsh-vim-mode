@@ -46,9 +46,6 @@ bindkey -M viins '\e[3~' delete-char
 bindkey -M viins '\e[Z'  reverse-menu-complete
 
 # vicmd - Basic Emacs-like bindings {{{1
-bindkey -M vicmd 'ga'    what-cursor-position
-bindkey -M vicmd 'gg'    beginning-of-history
-bindkey -M vicmd 'G'     end-of-history
 bindkey -M vicmd '^a'    beginning-of-line
 bindkey -M vicmd '^b'    backward-char
 bindkey -M vicmd '^e'    end-of-line
@@ -60,19 +57,13 @@ bindkey -M vicmd '^y'    yank
 bindkey -M vicmd '^w'    backward-kill-word
 bindkey -M vicmd '^u'    backward-kill-line
 bindkey -M vicmd '^_'    undo
-bindkey -M vicmd '/'     vi-history-search-forward
-bindkey -M vicmd '?'     vi-history-search-backward
-bindkey -M vicmd ':'     execute-named-cmd
 bindkey -M vicmd '\eb'   backward-word
 bindkey -M vicmd '\ed'   kill-word
 bindkey -M vicmd '\ef'   forward-word
 bindkey -M vicmd '\e.'   insert-last-word
 bindkey -M vicmd 'H'     run-help
-bindkey -M vicmd 'u'     undo
 bindkey -M vicmd 'U'     redo
 bindkey -M vicmd 'Y'     vi-yank-eol
-bindkey -M vicmd '\-'    vi-repeat-find
-bindkey -M vicmd '_'     vi-rev-repeat-find
 
 # edit-command-line {{{1
 autoload -U edit-command-line
