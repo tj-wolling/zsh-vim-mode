@@ -292,13 +292,12 @@ send-terminal-sequence() {
     fi
 
     if [[ -n $is_tmux ]]; then
-        # Double each escape (see zshbuiltins() echo docs for backslash escapes)
+        # Double each escape (see zshbuiltins(1) echo for backslash escapes)
         # And wrap it in the TMUX DCS passthrough
-        sequence=$(echo -E "$sequence" \
-            | sed 's/\\\(e\|x27\|033\|u001[bB]\|U0000001[bB]\)/\\e\\e/g')
+        sequence=${sequence//\\(e|x27|033|u001[bB]|U0000001[bB])/\\e\\e}
         sequence="\ePtmux;$sequence\e\\"
     fi
-    echo -n "$sequence"
+    print -n "$sequence"
 }
 
 set-terminal-cursor-style() {
