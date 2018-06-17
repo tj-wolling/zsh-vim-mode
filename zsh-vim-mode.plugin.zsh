@@ -3,97 +3,173 @@ bindkey -v
 # Don't wait too long after <Esc> to see if it's an arrow / function key
 export KEYTIMEOUT=5
 
-# viins - Basic Emacs-like bindings {{{1
-bindkey -M viins '^A'    beginning-of-line
-bindkey -M viins '^B'    backward-char
-bindkey -M viins '^D'    delete-char-or-list
-bindkey -M viins '^E'    end-of-line
-bindkey -M viins '^F'    forward-char
-bindkey -M viins '^H'    backward-delete-char
-bindkey -M viins '^K'    kill-line
-bindkey -M viins '^R'    history-incremental-pattern-search-backward
-bindkey -M viins '^S'    history-incremental-pattern-search-forward
-bindkey -M viins '^U'    backward-kill-line
-bindkey -M viins '^W'    backward-kill-word
-bindkey -M viins '^Y'    yank
-bindkey -M viins '^?'    backward-delete-char
-bindkey -M viins '^_'    undo
-bindkey -M viins '^X^R'  redisplay
-bindkey -M viins '^[b'   backward-word
-bindkey -M viins '^[d'   kill-word
-bindkey -M viins '^[f'   forward-word
-bindkey -M viins '^[h'   run-help
-bindkey -M viins '^[.'   insert-last-word
-# Alt + arrows
-bindkey -M viins '[D'    backward-word
-bindkey -M viins '[C'    forward-word
-bindkey -M viins '^[[1;3D' backward-word
-bindkey -M viins '^[[1;3C' forward-word
-# Ctrl + arrows
-bindkey -M viins '^[OD'  backward-word
-bindkey -M viins '^[OC'  forward-word
-bindkey -M viins '^[[1;5D' backward-word
-bindkey -M viins '^[[1;5C' forward-word
-# Home / End
-bindkey -M viins '^[OH'  beginning-of-line
-bindkey -M viins '^[OF'  end-of-line
-bindkey -M viins '^[[1~' beginning-of-line
-bindkey -M viins '^[[4~' end-of-line
-# Insert / Delete
-bindkey -M viins '^[[2~' overwrite-mode
-bindkey -M viins '^[[3~' delete-char
-# Shift + Tab
-bindkey -M viins '^[[Z'  reverse-menu-complete
 
-# vicmd - Basic Emacs-like bindings {{{1
-bindkey -M vicmd '^A'    beginning-of-line
-bindkey -M vicmd '^B'    backward-char
-bindkey -M vicmd '^E'    end-of-line
-bindkey -M vicmd '^F'    forward-char
-bindkey -M vicmd '^K'    kill-line
-bindkey -M vicmd '^R'    history-incremental-pattern-search-backward
-bindkey -M vicmd '^S'    history-incremental-pattern-search-forward
-bindkey -M vicmd '^U'    backward-kill-line
-bindkey -M vicmd '^W'    backward-kill-word
-bindkey -M vicmd '^Y'    yank
-bindkey -M vicmd '^_'    undo
-bindkey -M vicmd '^[b'   backward-word
-bindkey -M vicmd '^[d'   kill-word
-bindkey -M vicmd '^[f'   forward-word
-bindkey -M vicmd '^[.'   insert-last-word
-bindkey -M vicmd 'H'     run-help
-bindkey -M vicmd 'U'     redo
-bindkey -M vicmd 'Y'     vi-yank-eol
+# Special keys {{{1
+
+# NB: The terminfo sequences are meant to be used with the terminal
+# in *application mode*. This is properly initiated with `echoti smkx`,
+# usually in a zle line-init hook widget. But it may cause problems:
+# https://github.com/robbyrussell/oh-my-zsh/pull/5113
+#
+# So for now, leave smkx untouched, and let the framework deal with it.
+#
+# I'm not sure this method is correct, but it should be more correct
+# than before, and hopefully flexible enough to adapt if problems are
+# reported.
+#
+# Extra info:
+# http://invisible-island.net/xterm/xterm.faq.html#xterm_arrows
+# https://stackoverflow.com/a/29408977/749778
+
+zmodload zsh/terminfo
+
+typeset -A vim_mode_special_keys
+
+function vim-mode-define-special-key () {
+    local name="$1" tiname="$2"
+    local -a seqs
+    # Note that (V) uses the "^[" notation for <Esc>, and "^X" for <Ctrl-x>
+    [[ -n $tiname && -n $terminfo[$tiname] ]] && seqs+=${(V)terminfo[$tiname]}
+    for seq in ${@[3,-1]}; do
+        seqs+=$seq
+    done
+    vim_mode_special_keys[$name]=${${(uOqqq)seqs}}
+}
+
+# Explicitly check for VT100 versions (both normal and application mode)
+vim-mode-define-special-key Left       kcub1 "^[[D" "^[OD"
+vim-mode-define-special-key Right      kcuf1 "^[[C" "^[OC"
+vim-mode-define-special-key Up         kcuu1 "^[[A" "^[OA"
+vim-mode-define-special-key Down       kcud1 "^[[B" "^[OB"
+# These are XTerm, others should be found in terminfo
+vim-mode-define-special-key PgUp       kpp   "^[[5~"
+vim-mode-define-special-key PgDown     kpn   "^[[6~"
+vim-mode-define-special-key Home       khome "^[[1~"
+vim-mode-define-special-key End        kend  "^[[4~"
+vim-mode-define-special-key Insert     kich1 "^[[2~"
+vim-mode-define-special-key Delete     kdch1 "^[[3~"
+vim-mode-define-special-key Shift-Tab  kcbt  "^[[Z"
+# These aren't in terminfo; these are for:   XTerm  &  Rxvt
+vim-mode-define-special-key Ctrl-Left  ''    "^[[1;5D" "^[Od"
+vim-mode-define-special-key Ctrl-Right ''    "^[[1;5C" "^[Oc"
+vim-mode-define-special-key Ctrl-Up    ''    "^[[1;5A" "^[Oa"
+vim-mode-define-special-key Ctrl-Down  ''    "^[[1;5B" "^[Ob"
+vim-mode-define-special-key Alt-Left   ''    "^[[1;3D" "^[^[[D"
+vim-mode-define-special-key Alt-Right  ''    "^[[1;3C" "^[^[[C"
+vim-mode-define-special-key Alt-Up     ''    "^[[1;3A" "^[^[[A"
+vim-mode-define-special-key Alt-Down   ''    "^[[1;3B" "^[^[[B"
+
+#for k in ${(k)vim_mode_special_keys}; do
+#    printf '%-12s' "$k:";
+#    for x in ${(z)vim_mode_special_keys[$k]}; do printf "%8s" ${(Q)x}; done;
+#    printf "\n";
+#done
+
+
+# + vim-mode-bindkey {{{1
+function vim-mode-bindkey () {
+    local -a maps
+    local command
+
+    while (( $# )); do
+        [[ $1 = '--' ]] && break
+        maps+=$1
+        shift
+    done
+    shift
+
+    command=$1
+    shift
+
+    # A key combo can be made of more than one key press, so a binding for
+    # <Home> <End> will map to '^[[1~^[[4~', for example. XXX Except this
+    # doesn't seem to work. ZLE just wants a single special key for viins
+    # & vicmd (multiples work in emacs). Oh, well, this accumulator
+    # doesn't hurt and may come in handy. Just only call vim-mode-bindkey
+    # with one special key.
+
+    function vim-mode-accum-combo () {
+        typeset -g -a combos
+        local combo="$1"; shift
+        if (( $#@ )); then
+            local cur="$1"; shift
+            if (( ${+vim_mode_special_keys[$cur]} )); then
+                for seq in ${(z)vim_mode_special_keys[$cur]}; do
+                    vim-mode-accum-combo "$combo${(Q)seq}" "$@"
+                done
+            else
+                vim-mode-accum-combo "$combo$cur" "$@"
+            fi
+        else
+            combos+="$combo"
+        fi
+    }
+
+    local -a combos
+    vim-mode-accum-combo '' "$@"
+    for c in ${combos}; do
+        for m in ${maps}; do
+            bindkey -M $m "$c" $command
+        done
+    done
+}
+
+
+# Emacs-like bindings {{{1
+vim-mode-bindkey viins vicmd -- beginning-of-line                  '^A'
+vim-mode-bindkey viins vicmd -- backward-char                      '^B'
+vim-mode-bindkey viins vicmd -- end-of-line                        '^E'
+vim-mode-bindkey viins vicmd -- forward-char                       '^F'
+vim-mode-bindkey viins vicmd -- kill-line                          '^K'
+vim-mode-bindkey viins vicmd -- history-incremental-pattern-search-backward '^R'
+vim-mode-bindkey viins vicmd -- history-incremental-pattern-search-forward  '^S'
+vim-mode-bindkey viins vicmd -- backward-kill-line                 '^U'
+vim-mode-bindkey viins vicmd -- backward-kill-word                 '^W'
+vim-mode-bindkey viins vicmd -- yank                               '^Y'
+vim-mode-bindkey viins vicmd -- undo                               '^_'
+
+vim-mode-bindkey viins vicmd -- backward-word                      '^[b'
+vim-mode-bindkey viins vicmd -- kill-word                          '^[d'
+vim-mode-bindkey viins vicmd -- forward-word                       '^[f'
+vim-mode-bindkey viins vicmd -- insert-last-word                   '^[.'
+
+vim-mode-bindkey viins vicmd -- beginning-of-line                  Home
+vim-mode-bindkey viins vicmd -- end-of-line                        End
+vim-mode-bindkey viins vicmd -- backward-word                      Ctrl-Left
+vim-mode-bindkey viins vicmd -- backward-word                      Alt-Left
+vim-mode-bindkey viins vicmd -- forward-word                       Ctrl-Right
+vim-mode-bindkey viins vicmd -- forward-word                       Alt-Right
+
+vim-mode-bindkey viins       -- overwrite-mode                     Insert
+vim-mode-bindkey viins       -- delete-char                        Delete
+vim-mode-bindkey viins       -- reverse-menu-complete              Shift-Tab
+vim-mode-bindkey viins       -- delete-char-or-list                '^D'
+vim-mode-bindkey viins       -- backward-delete-char               '^H'
+vim-mode-bindkey viins       -- backward-delete-char               '^?'
+vim-mode-bindkey viins       -- redisplay                          '^X^R'
+vim-mode-bindkey viins       -- run-help                           '^[h'
+
+vim-mode-bindkey vicmd       -- run-help                           'H'
+vim-mode-bindkey vicmd       -- redo                               'U'
+vim-mode-bindkey vicmd       -- vi-yank-eol                        'Y'
 
 # edit-command-line {{{1
 autoload -U edit-command-line
 zle -N edit-command-line
-bindkey -M viins '^X^E'  edit-command-line
-bindkey -M vicmd '^V'    edit-command-line
+vim-mode-bindkey viins       -- edit-command-line                  '^X^E'
+vim-mode-bindkey vicmd       -- edit-command-line                  '^V'
 
 # history-substring-search {{{1
 if [[ -n $HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND ]]; then
-    bindkey -M viins '^P'    history-substring-search-up
-    bindkey -M viins '^N'    history-substring-search-down
-    bindkey -M vicmd '^P'    history-substring-search-up
-    bindkey -M vicmd '^N'    history-substring-search-down
-
-    # Page up / Page down
-    bindkey -M viins '^[[5~' history-substring-search-up
-    bindkey -M viins '^[[6~' history-substring-search-down
-    bindkey -M vicmd '^[[5~' history-substring-search-up
-    bindkey -M vicmd '^[[6~' history-substring-search-down
+    vim-mode-bindkey viins vicmd -- history-substring-search-up         '^P'
+    vim-mode-bindkey viins vicmd -- history-substring-search-down       '^N'
+    vim-mode-bindkey viins vicmd -- history-substring-search-up         PgUp
+    vim-mode-bindkey viins vicmd -- history-substring-search-down       PgDown
 else
-    bindkey -M viins '^P' history-beginning-search-backward
-    bindkey -M viins '^N' history-beginning-search-forward
-    bindkey -M vicmd '^P' history-beginning-search-backward
-    bindkey -M vicmd '^N' history-beginning-search-forward
-
-    # Page up / Page down
-    bindkey -M viins '^[[5~' history-beginning-search-backward
-    bindkey -M viins '^[[6~' history-beginning-search-forward
-    bindkey -M vicmd '^[[5~' history-beginning-search-backward
-    bindkey -M vicmd '^[[6~' history-beginning-search-forward
+    vim-mode-bindkey viins vicmd -- history-beginning-search-backward   '^P'
+    vim-mode-bindkey viins vicmd -- history-beginning-search-forward    '^N'
+    vim-mode-bindkey viins vicmd -- history-beginning-search-backward   PgUp
+    vim-mode-bindkey viins vicmd -- history-beginning-search-forward    PgDown
 fi
 
 
@@ -103,7 +179,7 @@ autoload -U select-bracketed
 zle -N select-bracketed
 for m in visual viopp; do
     for c in {a,i}${(s..)^:-'()[]{}<>bB'}; do
-        bindkey -M $m $c select-bracketed
+        vim-mode-bindkey $m -- select-bracketed $c
     done
 done
 
@@ -111,7 +187,7 @@ autoload -U select-quoted
 zle -N select-quoted
 for m in visual viopp; do
     for c in {a,i}{\',\",\`}; do
-        bindkey -M $m $c select-quoted
+        vim-mode-bindkey $m -- select-quoted $c
     done
 done
 
@@ -119,10 +195,10 @@ autoload -Uz surround
 zle -N delete-surround surround
 zle -N change-surround surround
 zle -N add-surround surround
-bindkey -a cs change-surround
-bindkey -a ds delete-surround
-bindkey -a ys add-surround
-bindkey -M visual S add-surround
+vim-mode-bindkey vicmd  -- change-surround cs
+vim-mode-bindkey vicmd  -- delete-surround ds
+vim-mode-bindkey vicmd  -- add-surround    ys
+vim-mode-bindkey visual -- add-surround    S
 
 
 # Keymap mode indicator - Prompt string {{{1
