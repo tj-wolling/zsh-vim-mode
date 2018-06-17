@@ -1,5 +1,15 @@
 # zsh-vim-mode
-Friendly bindings for zsh's vi mode
+
+Friendly bindings for ZSH's vi mode
+
+## Installation
+
+Install this plugin with any [ZSH plugin manager][], or just source it from
+your `.zshrc`.
+
+[ZSH plugin manager]: https://github.com/unixorn/awesome-zsh-plugins/blob/master/README.md#installation
+
+## Features
 
 ### Additional key bindings
 
@@ -7,13 +17,18 @@ In INSERT mode (`viins` keymap), most Emacs key bindings are available. Use
 `^A` and `^E` for beginning and end of line, `^R` for incremental search,
 etc. `<Esc>` or `<C-[>` quickly switches into NORMAL mode (`vicmd`).
 
-### Extra text objects
+### Surround Bindings for ZSH text objects
 
-ZSH has support for text objects since 5.0.8. This plugin adds bindings
-to give extra access in visual select mode. For example, when in NORMAL
-mode, type `v` to start a visual selection, then type `EE` to select two
-Words, then `S` to start the `add-surround` action, and `)` to complete
-it. The selected words will be surrounded by parentheses.
+ZSH has support for text objects since 5.0.8. This plugin adds the suggested
+bindings to use surround-type objects. For example, when in NORMAL mode with
+the cursor inside a double-quoted string, type `ci"` to change the contents
+of the string. Or type `cs"(` to change the quotes to parentheses. Type
+`ds(` to remove the parentheses. Type `ys2W]` to surround the following two
+Words with brackets.
+
+In visual mode, type `a[` to select the surrounding bracketed text
+(including the brackets), or type `i'` to select the text within single
+quotes. Type `S<` to put angle brackets around the selected text.
 
 ### Mode-sensitive cursor styling
 
@@ -29,6 +44,10 @@ style words are `steady`, `blinking`, `block`, `underline` and `bar`.
 If your cursor used to blink, and now it's stopped, you can fix that
 with `unset MODE_CURSOR_DEFAULT`. The default (steady) is
 appropriate for most terminals.
+
+If you are using `tmux` but `$TMUX` is not set (e.g., you're running
+zsh on a remote host), you may need to set `TMUX_PASSTHROUGH=1` to
+get the cursor styling to work.
 
 ### Mode in prompt
 
@@ -52,10 +71,14 @@ RPS1='${MODE_INDICATOR_PROMPT} ${vcs_info_msg_0_}'
 ```
 
 If you do not want to use prompt_subst, then it must **not** be
-quoted:
+quoted, and this module must be loaded first before adding it
+to your prompt:
 
 ```zsh
 setopt NO_prompt_subst
+
+# Load this plugin first, then later on ...
+
 MODE_INDICATOR_VICMD='%F{9}<%F{1}<<%f'
 MODE_INDICATOR_SEARCH='%F{13}<%F{5}<<%f'
 # Note the double quotes
@@ -74,13 +97,13 @@ for `MODE_INDICATOR_VICMD` if nothing else is set.
 The `$VIM_MODE_KEYMAP` variable is set to `viins`, `vicmd` or `isearch`,
 for easy inspection from other plugins.
 
-## Installation
+## Bugs
 
-Install this plugin with any [ZSH plugin manager][], or just source it from
-your `.zshrc`.
+If you find this doesn't work with your terminal, your plugins, your
+settings or your version of ZSH, please [open an issue][issues]. If
+it clobbers some setting that it shouldn't, please file a report.
 
-[ZSH plugin manager]: https://github.com/unixorn/awesome-zsh-plugins/blob/master/README.md#installation
-
+[issues]: https://github.com/softmoth/zsh-vim-mode/issues
 
 ## License
 

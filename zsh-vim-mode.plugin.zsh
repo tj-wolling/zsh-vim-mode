@@ -43,7 +43,7 @@ vim-mode-define-special-key Up         kcuu1 "^[[A" "^[OA"
 vim-mode-define-special-key Down       kcud1 "^[[B" "^[OB"
 # These are XTerm, others should be found in terminfo
 vim-mode-define-special-key PgUp       kpp   "^[[5~"
-vim-mode-define-special-key PgDown     kpn   "^[[6~"
+vim-mode-define-special-key PgDown     knp   "^[[6~"
 vim-mode-define-special-key Home       khome "^[[1~"
 vim-mode-define-special-key End        kend  "^[[4~"
 vim-mode-define-special-key Insert     kich1 "^[[2~"
@@ -149,15 +149,15 @@ vim-mode-bindkey viins       -- backward-delete-char               '^?'
 vim-mode-bindkey viins       -- redisplay                          '^X^R'
 vim-mode-bindkey viins       -- run-help                           '^[h'
 
-vim-mode-bindkey vicmd       -- run-help                           'H'
-vim-mode-bindkey vicmd       -- redo                               'U'
-vim-mode-bindkey vicmd       -- vi-yank-eol                        'Y'
+vim-mode-bindkey       vicmd -- run-help                           'H'
+vim-mode-bindkey       vicmd -- redo                               'U'
+vim-mode-bindkey       vicmd -- vi-yank-eol                        'Y'
 
 # edit-command-line {{{1
 autoload -U edit-command-line
 zle -N edit-command-line
 vim-mode-bindkey viins       -- edit-command-line                  '^X^E'
-vim-mode-bindkey vicmd       -- edit-command-line                  '^V'
+vim-mode-bindkey       vicmd -- edit-command-line                  '^V'
 
 # history-substring-search {{{1
 if [[ -n $HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND ]]; then
@@ -173,7 +173,7 @@ else
 fi
 
 
-# Enable parens, quotes and surround text-objects {{{1
+# Enable surround text-objects (quotes, brackets) {{{1
 
 autoload -U select-bracketed
 zle -N select-bracketed
@@ -205,7 +205,6 @@ vim-mode-bindkey visual -- add-surround    S
 
 autoload -Uz add-zsh-hook
 autoload -Uz add-zle-hook-widget
-autoload -Uz colors; colors
 
 # Compatibility with old variable names
 (( $+MODE_INDICATOR_I )) && : ${MODE_INDICATOR_VIINS=MODE_INDICATOR_I}
@@ -311,12 +310,12 @@ vim-mode-update-prompt () {
     (( $+RPROMPT )) && : ${RPS1=$RPROMPT}
     local prompts="$PS1 $RPS1"
 
+    MODE_INDICATOR_PROMPT=$vim_mode_indicator_pfx
     case $keymap in
-        vicmd)        MODE_INDICATOR_PROMPT=${MODE_INDICATOR_VICMD} ;;
-        isearch)      MODE_INDICATOR_PROMPT=${MODE_INDICATOR_SEARCH} ;;
-        main|viins|*) MODE_INDICATOR_PROMPT=${MODE_INDICATOR_VIINS} ;;
+        vicmd)        MODE_INDICATOR_PROMPT+=${MODE_INDICATOR_VICMD} ;;
+        isearch)      MODE_INDICATOR_PROMPT+=${MODE_INDICATOR_SEARCH} ;;
+        main|viins|*) MODE_INDICATOR_PROMPT+=${MODE_INDICATOR_VIINS} ;;
     esac
-    MODE_INDICATOR_PROMPT="$vim_mode_indicator_pfx$MODE_INDICATOR_PROMPT"
 
     if [[ ${(SN)prompts#${~any_mode}} > 0 ]]; then
         PS1=${PS1//${~any_mode}/$MODE_INDICATOR_PROMPT}
@@ -345,11 +344,6 @@ vim_mode_keymap_funcs+=vim-mode-update-prompt
     && : ${MODE_CURSOR_SEARCH=ZSH_VIM_MODE_CURSOR_ISEARCH}
 (( $+ZSH_VIM_MODE_CURSOR_DEFAULT )) \
     && : ${MODE_CURSOR_DEFAULT=ZSH_VIM_MODE_CURSOR_DEFAULT}
-
-# These can be set in your .zshrc
-: ${MODE_CURSOR_VIINS=}
-: ${MODE_CURSOR_VICMD=}
-: ${MODE_CURSOR_SEARCH=}
 
 # You may want to set this to '', if your cursor stops blinking
 # when you didn't ask it to. Some terminals, e.g., xterm, don't blink
@@ -381,16 +375,15 @@ set-terminal-cursor-style() {
     local shape=
     local color=
 
-    while [[ $# -gt 0 ]]; do
-        case $1 in
+    for setting in ${=MODE_CURSOR_DEFAULT} "$@"; do
+        case $setting in
             blinking)  steady=0 ;;
             steady)    steady=1 ;;
             block)     shape=1 ;;
             underline) shape=3 ;;
             beam|bar)  shape=5 ;;
-            *)         color="$1" ;;
+            *)         color="$setting" ;;
         esac
-        shift
     done
 
     # OSC Ps ; Pt BEL
@@ -433,18 +426,9 @@ vim-mode-set-cursor-style() {
        || -n $MODE_CURSOR_SEARCH ]]
     then
         case $keymap in
-            main|viins)
-                set-terminal-cursor-style ${=MODE_CURSOR_DEFAULT} \
-                    ${=MODE_CURSOR_VIINS}
-                ;;
-            vicmd)
-                set-terminal-cursor-style ${=MODE_CURSOR_DEFAULT} \
-                    ${=MODE_CURSOR_VICMD}
-                ;;
-            isearch)
-                set-terminal-cursor-style ${=MODE_CURSOR_DEFAULT} \
-                    ${=MODE_CURSOR_SEARCH}
-                ;;
+            vicmd)        set-terminal-cursor-style ${=MODE_CURSOR_VICMD} ;;
+            isearch)      set-terminal-cursor-style ${=MODE_CURSOR_SEARCH} ;;
+            main|viins|*) set-terminal-cursor-style ${=MODE_CURSOR_VIINS} ;;
         esac
     fi
 }
@@ -454,7 +438,7 @@ vim-mode-cursor-init-hook() {
 }
 
 vim-mode-cursor-finish-hook() {
-    set-terminal-cursor-style ${=MODE_CURSOR_DEFAULT}
+    set-terminal-cursor-style
 }
 
 case $TERM in
