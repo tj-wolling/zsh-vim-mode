@@ -55,9 +55,11 @@ If RPS1 / RPROMPT is not set, the mode indicator will be added
 automatically. The appearance can be set with:
 
 ```zsh
-MODE_INDICATOR_VIINS='%F{15}<%F{8}<<%f'
-MODE_INDICATOR_VICMD='%F{9}<%F{1}<<%f'
-MODE_INDICATOR_SEARCH='%F{13}<%F{5}<<%f'
+MODE_INDICATOR_VIINS='%F{15}<%F{8}INSERT<%f'
+MODE_INDICATOR_VICMD='%F{9}<%F{1}NORMAL<%f'
+MODE_INDICATOR_SEARCH='%F{13}<%F{5}SEARCH<%f'
+MODE_INDICATOR_VISUAL='%F{12}<%F{4}VISUAL<%f'
+MODE_INDICATOR_VLINE='%F{12}<%F{4}V-LINE<%f'
 ```
 
 If you want to add this to your existing RPS1, there are two ways. If

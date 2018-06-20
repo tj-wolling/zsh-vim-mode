@@ -213,29 +213,40 @@ autoload -Uz add-zle-hook-widget
 (( $+MODE_INDICATOR_N )) && : ${MODE_INDICATOR_VICMD=MODE_INDICATOR_N}
 (( $+MODE_INDICATOR_C )) && : ${MODE_INDICATOR_SEARCH=MODE_INDICATOR_C}
 
-# Upon <Esc> in isearch, it says it's in vicmd, but is really in viins
-# IF isearch was initiated from viins.
-#
-# Unfortunately, upon ^C in isearch, ZSH returns to the previous state,
-# but none of the zle hooks are called. So you'll end up in vicmd or
-# viins mode, but the cursor / prompt won't update. Hitting ^C again
-# does reset things.
-
 local -a vim_mode_keymap_funcs
 
+vim-mode-keymap-redraw    () { vim-mode-run-keymap-funcs $KEYMAP REDRAW "$@" }
 vim-mode-keymap-select    () { vim-mode-run-keymap-funcs $KEYMAP "$@" }
 vim-mode-keymap-select-up () { vim-mode-run-keymap-funcs $KEYMAP UPDATE "$@" }
 vim-mode-keymap-select-ex () { vim-mode-run-keymap-funcs $KEYMAP EXIT   "$@" }
 
-add-zle-hook-widget keymap-select  vim-mode-keymap-select
-add-zle-hook-widget isearch-update vim-mode-keymap-select-up
-# Need to know when we exit isearch with <C-e> or similar
-add-zle-hook-widget isearch-exit   vim-mode-keymap-select-ex
+add-zle-hook-widget line-pre-redraw  vim-mode-keymap-redraw
+add-zle-hook-widget keymap-select    vim-mode-keymap-select
+add-zle-hook-widget isearch-update   vim-mode-keymap-select-up
+add-zle-hook-widget isearch-exit     vim-mode-keymap-select-ex
 
 vim-mode-run-keymap-funcs () {
     local keymap="$1"
     local previous="$2"
 
+    if [[ $previous = REDRAW ]]; then
+        [[ $keymap = vicmd ]] || return
+
+        local ra=${REGION_ACTIVE:-0}
+        if [[ $ra = 1 ]]; then
+            keymap=visual
+        elif [[ $ra = 2 ]]; then
+            keymap=vline
+        fi
+    fi
+
+    # Upon <Esc> in isearch, it says it's in vicmd, but is really in viins
+    # IF isearch was initiated from viins.
+    #
+    # Unfortunately, upon ^C in isearch, ZSH returns to the previous state,
+    # but none of the zle hooks are called. So you'll end up in vicmd or
+    # viins mode, but the cursor / prompt won't update. Hitting ^C again
+    # does reset things.
     if [[ $previous = UPDATE ]]; then
         if [[ $keymap = vicmd ]]; then
             # Don't believe it
@@ -244,6 +255,7 @@ vim-mode-run-keymap-funcs () {
             keymap=isearch
         fi
     fi
+
     #_dbug_note "$2 -> $1 ${(q)@[3,-1]}: $previous -> $keymap"
 
     # Can be used by prompt themes, etc.
@@ -265,18 +277,36 @@ vim-mode-run-keymap-funcs () {
 # If mode indicator wasn't setup by theme, define default
 vim-mode-set-up-indicators () {
     local indicator=${MODE_INDICATOR_VICMD-${MODE_INDICATOR-DEFAULT}}
-    local set=$(($+MODE_INDICATOR_VIINS + $+MODE_INDICATOR_VICMD + $+MODE_INDICATOR_SEARCH))
+    local set=$((
+        $+MODE_INDICATOR_VIINS +
+        $+MODE_INDICATOR_VICMD +
+        $+MODE_INDICATOR_SEARCH +
+        $+MODE_INDICATOR_VISUAL +
+        $+MODE_INDICATOR_VLINE))
 
     if [[ -n $indicator || $set > 0 ]]; then
         if (( ! $set )); then
             if [[ $indicator = DEFAULT ]]; then
                 MODE_INDICATOR_VICMD='%F{10}<%F{2}<<%f'
-                MODE_INDICATOR_SEARCH='%F{13}<%F{5}<<%f'
+                MODE_INDICATOR_SEARCH='%F{13}<%F{5}?<%f'
+                MODE_INDICATOR_VISUAL='%F{12}<%F{4}-<%f'
+                MODE_INDICATOR_VLINE='%F{12}<%F{4}=<%f'
             else
                 MODE_INDICATOR_VICMD=$indicator
             fi
 
+            # Search indicator defaults to viins
+            (( $+MODE_INDICATOR_VIINS )) && \
+                : ${MODE_INDICATOR_SEARCH=$MODE_INDICATOR_VIINS}
+
+            # Visual indicator defaults to vicmd
+            (( $+MODE_INDICATOR_VICMD )) && \
+                : ${MODE_INDICATOR_VISUAL=$MODE_INDICATOR_VICMD}
+            (( $+MODE_INDICATOR_VISUAL )) && \
+                : ${MODE_INDICATOR_VLINE=$MODE_INDICATOR_VISUAL}
+
             MODE_INDICATOR_PROMPT=${vim_mode_indicator_pfx}${MODE_INDICATOR_VIINS}
+
             if (( !$+RPS1 )); then
                 [[ -o promptsubst ]] \
                     && RPS1='${MODE_INDICATOR_PROMPT}' \
@@ -298,8 +328,10 @@ vim-mode-update-prompt () {
     local -A modes=(
         e  ${vim_mode_indicator_pfx}
         I  ${vim_mode_indicator_pfx}${MODE_INDICATOR_VIINS}
-        N  ${vim_mode_indicator_pfx}${MODE_INDICATOR_VICMD}
-        C  ${vim_mode_indicator_pfx}${MODE_INDICATOR_SEARCH}
+        C  ${vim_mode_indicator_pfx}${MODE_INDICATOR_VICMD}
+        S  ${vim_mode_indicator_pfx}${MODE_INDICATOR_SEARCH}
+        V  ${vim_mode_indicator_pfx}${MODE_INDICATOR_VISUAL}
+        L  ${vim_mode_indicator_pfx}${MODE_INDICATOR_VLINE}
         # In case user has changed the mode string since last call, look
         # for the previous value as well as set of current values
         p  ${vim_mode_indicator_pfx}${MODE_INDICATOR_PROMPT}
@@ -312,11 +344,12 @@ vim-mode-update-prompt () {
     (( $+RPROMPT )) && : ${RPS1=$RPROMPT}
     local prompts="$PS1 $RPS1"
 
-    MODE_INDICATOR_PROMPT=$vim_mode_indicator_pfx
     case $keymap in
-        vicmd)        MODE_INDICATOR_PROMPT+=${MODE_INDICATOR_VICMD} ;;
-        isearch)      MODE_INDICATOR_PROMPT+=${MODE_INDICATOR_SEARCH} ;;
-        main|viins|*) MODE_INDICATOR_PROMPT+=${MODE_INDICATOR_VIINS} ;;
+        vicmd)        MODE_INDICATOR_PROMPT=$modes[C] ;;
+        isearch)      MODE_INDICATOR_PROMPT=$modes[S] ;;
+        visual)       MODE_INDICATOR_PROMPT=$modes[V] ;;
+        vline)        MODE_INDICATOR_PROMPT=$modes[L] ;;
+        main|viins|*) MODE_INDICATOR_PROMPT=$modes[I] ;;
     esac
 
     if [[ ${(SN)prompts#${~any_mode}} > 0 ]]; then
@@ -435,10 +468,6 @@ vim-mode-set-cursor-style() {
     fi
 }
 
-vim-mode-cursor-init-hook() {
-    zle -K viins
-}
-
 vim-mode-cursor-finish-hook() {
     set-terminal-cursor-style
 }
@@ -453,7 +482,6 @@ case $TERM in
 
     * )
         vim_mode_keymap_funcs+=vim-mode-set-cursor-style
-        add-zle-hook-widget line-init      vim-mode-cursor-init-hook
         add-zle-hook-widget line-finish    vim-mode-cursor-finish-hook
         ;;
 esac
