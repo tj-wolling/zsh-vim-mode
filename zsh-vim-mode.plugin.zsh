@@ -1,5 +1,7 @@
 bindkey -v
 
+${(%):-%x}_debug () { print -r "$(date) $@" >> /tmp/zsh-debug-vim-mode.log 2>&1 }
+
 # Don't wait too long after <Esc> to see if it's an arrow / function key
 export KEYTIMEOUT=5
 
@@ -256,7 +258,11 @@ vim-mode-run-keymap-funcs () {
         fi
     fi
 
-    #_dbug_note "$2 -> $1 ${(q)@[3,-1]}: $previous -> $keymap"
+    if [[ $keymap = 'viins' || $keymap = 'main' ]]; then
+        [[ $ZLE_STATE = *overwrite* ]] && keymap=replace
+    fi
+
+    #${(%):-%x}_debug "$2 -> $1 ${(q)@[3,-1]}: $previous -> $keymap"
 
     # Can be used by prompt themes, etc.
     VIM_MODE_KEYMAP=$keymap
@@ -279,6 +285,7 @@ vim-mode-set-up-indicators () {
     local indicator=${MODE_INDICATOR_VICMD-${MODE_INDICATOR-DEFAULT}}
     local set=$((
         $+MODE_INDICATOR_VIINS +
+        $+MODE_INDICATOR_REPLACE +
         $+MODE_INDICATOR_VICMD +
         $+MODE_INDICATOR_SEARCH +
         $+MODE_INDICATOR_VISUAL +
@@ -288,6 +295,7 @@ vim-mode-set-up-indicators () {
         if (( ! $set )); then
             if [[ $indicator = DEFAULT ]]; then
                 MODE_INDICATOR_VICMD='%F{10}<%F{2}<<%f'
+                MODE_INDICATOR_REPLACE='%F{9}<%F{1}*<%f'
                 MODE_INDICATOR_SEARCH='%F{13}<%F{5}?<%f'
                 MODE_INDICATOR_VISUAL='%F{12}<%F{4}-<%f'
                 MODE_INDICATOR_VLINE='%F{12}<%F{4}=<%f'
@@ -295,7 +303,9 @@ vim-mode-set-up-indicators () {
                 MODE_INDICATOR_VICMD=$indicator
             fi
 
-            # Search indicator defaults to viins
+            # Replace / Search indicator defaults to viins
+            (( $+MODE_INDICATOR_VIINS )) && \
+                : ${MODE_INDICATOR_REPLACE=$MODE_INDICATOR_VIINS}
             (( $+MODE_INDICATOR_VIINS )) && \
                 : ${MODE_INDICATOR_SEARCH=$MODE_INDICATOR_VIINS}
 
@@ -329,6 +339,7 @@ vim-mode-update-prompt () {
         e  ${vim_mode_indicator_pfx}
         I  ${vim_mode_indicator_pfx}${MODE_INDICATOR_VIINS}
         C  ${vim_mode_indicator_pfx}${MODE_INDICATOR_VICMD}
+        R  ${vim_mode_indicator_pfx}${MODE_INDICATOR_REPLACE}
         S  ${vim_mode_indicator_pfx}${MODE_INDICATOR_SEARCH}
         V  ${vim_mode_indicator_pfx}${MODE_INDICATOR_VISUAL}
         L  ${vim_mode_indicator_pfx}${MODE_INDICATOR_VLINE}
@@ -346,6 +357,7 @@ vim-mode-update-prompt () {
 
     case $keymap in
         vicmd)        MODE_INDICATOR_PROMPT=$modes[C] ;;
+        replace)      MODE_INDICATOR_PROMPT=$modes[R] ;;
         isearch)      MODE_INDICATOR_PROMPT=$modes[S] ;;
         visual)       MODE_INDICATOR_PROMPT=$modes[V] ;;
         vline)        MODE_INDICATOR_PROMPT=$modes[L] ;;
@@ -468,6 +480,10 @@ vim-mode-set-cursor-style() {
     fi
 }
 
+vim-mode-cursor-init-hook() {
+    zle -K viins
+}
+
 vim-mode-cursor-finish-hook() {
     set-terminal-cursor-style
 }
@@ -482,9 +498,9 @@ case $TERM in
 
     * )
         vim_mode_keymap_funcs+=vim-mode-set-cursor-style
+        add-zle-hook-widget line-init      vim-mode-cursor-init-hook
         add-zle-hook-widget line-finish    vim-mode-cursor-finish-hook
         ;;
 esac
 
-#_dbug_note () { print "$(date)\t" "$@" 2>> "/tmp/zsh-debug-vim-mode.log" >&2 }
 # vim:set ft=zsh sw=4 et fdm=marker:
