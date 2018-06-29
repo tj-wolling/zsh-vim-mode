@@ -25,7 +25,7 @@ export KEYTIMEOUT=5
 
 zmodload zsh/terminfo
 
-typeset -A vim_mode_special_keys
+typeset -A -H vim_mode_special_keys
 
 function vim-mode-define-special-key () {
     local name="$1" tiname="$2"
@@ -217,15 +217,15 @@ autoload -Uz add-zle-hook-widget
 
 local -a vim_mode_keymap_funcs
 
-vim-mode-keymap-redraw    () { vim-mode-run-keymap-funcs $KEYMAP REDRAW "$@" }
-vim-mode-keymap-select    () { vim-mode-run-keymap-funcs $KEYMAP "$@" }
-vim-mode-keymap-select-up () { vim-mode-run-keymap-funcs $KEYMAP UPDATE "$@" }
-vim-mode-keymap-select-ex () { vim-mode-run-keymap-funcs $KEYMAP EXIT   "$@" }
+vim-mode-keymap-select   () { vim-mode-run-keymap-funcs $KEYMAP "$@" }
+vim-mode-isearch-update  () { vim-mode-run-keymap-funcs $KEYMAP UPDATE "$@" }
+vim-mode-isearch-exit    () { vim-mode-run-keymap-funcs $KEYMAP EXIT   "$@" }
+vim-mode-line-pre-redraw () { vim-mode-run-keymap-funcs $KEYMAP REDRAW "$@" }
 
-add-zle-hook-widget line-pre-redraw  vim-mode-keymap-redraw
 add-zle-hook-widget keymap-select    vim-mode-keymap-select
-add-zle-hook-widget isearch-update   vim-mode-keymap-select-up
-add-zle-hook-widget isearch-exit     vim-mode-keymap-select-ex
+add-zle-hook-widget isearch-update   vim-mode-isearch-update
+add-zle-hook-widget isearch-exit     vim-mode-isearch-exit
+add-zle-hook-widget line-pre-redraw  vim-mode-line-pre-redraw
 
 vim-mode-run-keymap-funcs () {
     local keymap="$1"
@@ -234,10 +234,10 @@ vim-mode-run-keymap-funcs () {
     if [[ $previous = REDRAW ]]; then
         [[ $keymap = vicmd ]] || return
 
-        local ra=${REGION_ACTIVE:-0}
-        if [[ $ra = 1 ]]; then
+        local active=${REGION_ACTIVE:-0}
+        if [[ $active = 1 ]]; then
             keymap=visual
-        elif [[ $ra = 2 ]]; then
+        elif [[ $active = 2 ]]; then
             keymap=vline
         fi
     fi
@@ -336,7 +336,6 @@ vim-mode-update-prompt () {
     (( $+MODE_INDICATOR_PROMPT )) || return
 
     local -A modes=(
-        e  ${vim_mode_indicator_pfx}
         I  ${vim_mode_indicator_pfx}${MODE_INDICATOR_VIINS}
         C  ${vim_mode_indicator_pfx}${MODE_INDICATOR_VICMD}
         R  ${vim_mode_indicator_pfx}${MODE_INDICATOR_REPLACE}
@@ -345,7 +344,7 @@ vim-mode-update-prompt () {
         L  ${vim_mode_indicator_pfx}${MODE_INDICATOR_VLINE}
         # In case user has changed the mode string since last call, look
         # for the previous value as well as set of current values
-        p  ${vim_mode_indicator_pfx}${MODE_INDICATOR_PROMPT}
+        p  ${MODE_INDICATOR_PROMPT}
     )
 
     # Pattern that will match any value from $modes. Reverse sort, so that
@@ -372,6 +371,7 @@ vim-mode-update-prompt () {
     zle reset-prompt
 }
 
+# Compatibility with oh-my-zsh vi-mode
 function vi_mode_prompt_info() {
     print ${MODE_INDICATOR_PROMPT}
 }
