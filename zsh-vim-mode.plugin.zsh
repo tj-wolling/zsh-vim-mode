@@ -1,5 +1,5 @@
 # Global aliases can break things. Unset before using any non-builtins.
-[[ -o aliases ]] && local _shopt_aliases=1
+[[ -o aliases ]] && _shopt_aliases=1
 builtin set -o no_aliases
 
 bindkey -v
