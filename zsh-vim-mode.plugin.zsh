@@ -1,3 +1,7 @@
+# Global aliases can break things. Unset before using any non-builtins.
+[[ -o aliases ]] && local _shopt_aliases=1
+builtin set -o no_aliases
+
 bindkey -v
 
 ${(%):-%x}_debug () { print -r "$(date) $@" >> /tmp/zsh-debug-vim-mode.log 2>&1 }
@@ -502,5 +506,11 @@ case $TERM in
         add-zle-hook-widget line-finish    vim-mode-cursor-finish-hook
         ;;
 esac
+
+# Restore shell option 'aliases' if it was previously enabled
+if [[ $_shopt_aliases = 1 ]]; then
+   set -o aliases
+   unset _shopt_aliases
+fi
 
 # vim:set ft=zsh sw=4 et fdm=marker:
