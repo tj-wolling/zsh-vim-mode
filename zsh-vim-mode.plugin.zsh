@@ -508,9 +508,10 @@ case $TERM in
 esac
 
 # Restore shell option 'aliases' if it was previously enabled
+# Only `builtin`s should be used after (possibly) restoring aliases.
 if [[ $_shopt_aliases = 1 ]]; then
    set -o aliases
-   unset _shopt_aliases
+   builtin unset _shopt_aliases
 fi
 
 # vim:set ft=zsh sw=4 et fdm=marker:
