@@ -4,7 +4,7 @@ builtin set -o no_aliases
 
 bindkey -v
 
-${(%):-%x}_debug () { print -r "$(date) $@" >> /tmp/zsh-debug-vim-mode.log 2>&1 }
+#${(%):-%x}_debug () { print -r "$(date) $@" >> /tmp/zsh-debug-vim-mode.log 2>&1 }
 
 # Don't wait too long after <Esc> to see if it's an arrow / function key
 export KEYTIMEOUT=5
@@ -221,11 +221,13 @@ autoload -Uz add-zle-hook-widget
 
 local -a vim_mode_keymap_funcs
 
+vim-mode-init            () { vim-mode-run-keymap-funcs ''      INIT   "$@" }
 vim-mode-keymap-select   () { vim-mode-run-keymap-funcs $KEYMAP "$@" }
 vim-mode-isearch-update  () { vim-mode-run-keymap-funcs $KEYMAP UPDATE "$@" }
 vim-mode-isearch-exit    () { vim-mode-run-keymap-funcs $KEYMAP EXIT   "$@" }
 vim-mode-line-pre-redraw () { vim-mode-run-keymap-funcs $KEYMAP REDRAW "$@" }
 
+add-zsh-hook        precmd           vim-mode-init
 add-zle-hook-widget keymap-select    vim-mode-keymap-select
 add-zle-hook-widget isearch-update   vim-mode-isearch-update
 add-zle-hook-widget isearch-exit     vim-mode-isearch-exit
@@ -234,6 +236,8 @@ add-zle-hook-widget line-pre-redraw  vim-mode-line-pre-redraw
 vim-mode-run-keymap-funcs () {
     local keymap="$1"
     local previous="$2"
+
+    #${(%):-%x}_debug "run-keymap-funcs [${(qq)@}]"
 
     if [[ $previous = REDRAW ]]; then
         [[ $keymap = vicmd ]] || return
@@ -273,7 +277,7 @@ vim-mode-run-keymap-funcs () {
 
     local func
     for func in ${vim_mode_keymap_funcs[@]}; do
-        ${func} $keymap $previous
+        ${func} "$keymap" "$previous"
     done
 }
 
@@ -372,6 +376,7 @@ vim-mode-update-prompt () {
         RPS1=${RPS1//${~any_mode}/$MODE_INDICATOR_PROMPT}
     fi
 
+    [[ -n $keymap ]] || return
     zle reset-prompt
 }
 
@@ -485,7 +490,7 @@ vim-mode-set-cursor-style() {
 }
 
 vim-mode-cursor-init-hook() {
-    zle -K viins
+    vim-mode-set-cursor-style ''
 }
 
 vim-mode-cursor-finish-hook() {
@@ -502,7 +507,7 @@ case $TERM in
 
     * )
         vim_mode_keymap_funcs+=vim-mode-set-cursor-style
-        add-zle-hook-widget line-init      vim-mode-cursor-init-hook
+        add-zsh-hook        precmd         vim-mode-cursor-init-hook
         add-zle-hook-widget line-finish    vim-mode-cursor-finish-hook
         ;;
 esac
