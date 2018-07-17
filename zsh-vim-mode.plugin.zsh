@@ -1,5 +1,5 @@
 # Global aliases can break things. Unset before using any non-builtins.
-[[ -o aliases ]] && _shopt_aliases=1
+[[ -o aliases ]] && _vim_mode_shopt_aliases=1
 builtin set -o no_aliases
 
 bindkey -v
@@ -507,11 +507,10 @@ case $TERM in
         ;;
 esac
 
-# Restore shell option 'aliases' if it was previously enabled
-# Only `builtin`s should be used after (possibly) restoring aliases.
-if [[ $_shopt_aliases = 1 ]]; then
+# Restore shell option 'aliases'. This must be the last thing here.
+if [[ $_vim_mode_shopt_aliases = 1 ]]; then
+   unset _vim_mode_shopt_aliases
    set -o aliases
-   builtin unset _shopt_aliases
 fi
 
 # vim:set ft=zsh sw=4 et fdm=marker:
