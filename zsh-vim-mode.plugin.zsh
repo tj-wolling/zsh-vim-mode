@@ -209,7 +209,7 @@ vim-mode-bindkey vicmd  -- add-surround    ys
 vim-mode-bindkey visual -- add-surround    S
 
 
-# Keymap mode indicator - Prompt string {{{1
+# Identifying the editing mode {{{1
 
 autoload -Uz add-zsh-hook
 autoload -Uz add-zle-hook-widget
@@ -219,67 +219,117 @@ autoload -Uz add-zle-hook-widget
 (( $+MODE_INDICATOR_N )) && : ${MODE_INDICATOR_VICMD=MODE_INDICATOR_N}
 (( $+MODE_INDICATOR_C )) && : ${MODE_INDICATOR_SEARCH=MODE_INDICATOR_C}
 
-local -a vim_mode_keymap_funcs
+typeset -g -a vim_mode_keymap_funcs=()
 
-vim-mode-init            () { vim-mode-run-keymap-funcs ''      INIT   "$@" }
-vim-mode-keymap-select   () { vim-mode-run-keymap-funcs $KEYMAP "$@" }
-vim-mode-isearch-update  () { vim-mode-run-keymap-funcs $KEYMAP UPDATE "$@" }
-vim-mode-isearch-exit    () { vim-mode-run-keymap-funcs $KEYMAP EXIT   "$@" }
-vim-mode-line-pre-redraw () { vim-mode-run-keymap-funcs $KEYMAP REDRAW "$@" }
+vim-mode-precmd           () { vim-mode-handle-event precmd           "$KEYMAP" }
+add-zsh-hook precmd vim-mode-precmd
 
-add-zsh-hook        precmd           vim-mode-init
-add-zle-hook-widget keymap-select    vim-mode-keymap-select
-add-zle-hook-widget isearch-update   vim-mode-isearch-update
-add-zle-hook-widget isearch-exit     vim-mode-isearch-exit
-add-zle-hook-widget line-pre-redraw  vim-mode-line-pre-redraw
+vim-mode-isearch-update   () { vim-mode-handle-event isearch-update   "$KEYMAP" }
+vim-mode-isearch-exit     () { vim-mode-handle-event isearch-exit     "$KEYMAP" }
+vim-mode-line-pre-redraw  () { vim-mode-handle-event line-pre-redraw  "$KEYMAP" }
 
-vim-mode-run-keymap-funcs () {
+() {
+    local w; for w in "$@"; do add-zle-hook-widget $w vim-mode-$w; done
+} isearch-exit isearch-update line-pre-redraw
+
+typeset -g vim_mode_keymap_state=
+
+vim-mode-handle-event () {
+    #${(%):-%x}_debug "handle-event [${(qq)@}][cur:${VIM_MODE_KEYMAP}]"
+
+    local hook="$1"
+    local keymap="$2"
+
+    case $hook in
+    line-pre-redraw )
+        # This hook is called (maybe several times) on every action except
+        # for the initial prompt drawing
+        case $vim_mode_keymap_state in
+        '' )
+            vim_mode_set_keymap "$keymap"
+            ;;
+        *-escape )
+            vim_mode_set_keymap "${vim_mode_keymap_state%-escape}"
+            vim_mode_keymap_state=
+            ;;
+        *-update )
+            # Normal update in isearch mode
+            vim_mode_keymap_state=${vim_mode_keymap_state%-update}
+            vim_mode_set_keymap isearch
+            ;;
+        * )
+            # ^C was hit during isearch mode!
+            vim_mode_set_keymap "$vim_mode_keymap_state"
+            vim_mode_keymap_state=
+            ;;
+        esac
+        ;;
+    isearch-update )
+        if [[ $keymap = vicmd ]]; then
+            # This is an abnormal exit from search (like <Esc>)
+            vim_mode_keymap_state+='-escape'
+        elif [[ $VIM_MODE_KEYMAP != isearch ]]; then
+            # Normal update, starting search mode
+            vim_mode_keymap_state=${VIM_MODE_KEYMAP}-update
+        else
+            # Normal update, staying in search mode
+            vim_mode_keymap_state+=-update
+        fi
+        ;;
+    isearch-exit )
+        if [[ $VIM_MODE_KEYMAP = isearch ]]; then
+            # This could be a normal (movement key) exit, but it could also
+            # be ^G which behaves almost like <Esc>. So don't trust $keymap.
+            vim_mode_keymap_state+='-escape'
+        fi
+
+        # Otherwise, we already exited search via abnormal isearch-update,
+        # so there is nothing to do here.
+        ;;
+    precmd )
+        # When the prompt is first shown line-pre-redraw does not get called
+        # so the state must be initialized here
+        vim_mode_keymap_state=
+        vim_mode_set_keymap viins
+        ;;
+    * )
+        # Should not happen
+        zle && zle -M "zsh-vim-mode internal error: bad hook $hook"
+        ;;
+    esac
+}
+
+vim_mode_set_keymap () {
     local keymap="$1"
-    local previous="$2"
 
-    #${(%):-%x}_debug "run-keymap-funcs [${(qq)@}]"
+    [[ $keymap = main || $keymap = '' ]] && keymap=viins
 
-    if [[ $previous = REDRAW ]]; then
-        [[ $keymap = vicmd ]] || return
-
+    if [[ $keymap = vicmd ]]; then
         local active=${REGION_ACTIVE:-0}
         if [[ $active = 1 ]]; then
             keymap=visual
         elif [[ $active = 2 ]]; then
             keymap=vline
         fi
-    fi
-
-    # Upon <Esc> in isearch, it says it's in vicmd, but is really in viins
-    # IF isearch was initiated from viins.
-    #
-    # Unfortunately, upon ^C in isearch, ZSH returns to the previous state,
-    # but none of the zle hooks are called. So you'll end up in vicmd or
-    # viins mode, but the cursor / prompt won't update. Hitting ^C again
-    # does reset things.
-    if [[ $previous = UPDATE ]]; then
-        if [[ $keymap = vicmd ]]; then
-            # Don't believe it
-            keymap=viins
-        else
-            keymap=isearch
-        fi
-    fi
-
-    if [[ $keymap = 'viins' || $keymap = 'main' ]]; then
+    elif [[ $keymap = viins ]]; then
         [[ $ZLE_STATE = *overwrite* ]] && keymap=replace
     fi
 
-    #${(%):-%x}_debug "$2 -> $1 ${(q)@[3,-1]}: $previous -> $keymap"
+    #${(%):-%x}_debug "     -> $keymap"
+
+    [[ $VIM_MODE_KEYMAP = $keymap ]] && return
 
     # Can be used by prompt themes, etc.
     VIM_MODE_KEYMAP=$keymap
 
     local func
     for func in ${vim_mode_keymap_funcs[@]}; do
-        ${func} "$keymap" "$previous"
+        ${func} "$keymap"
     done
 }
+
+
+# Editing mode indicator - Prompt string {{{1
 
 # Unique prefix to tag the mode indicator text in the prompt.
 # If ZLE_RPROMPT_INDENT is < 1, zle gets confused if $RPS1 isn't empty but
@@ -376,7 +426,7 @@ vim-mode-update-prompt () {
         RPS1=${RPS1//${~any_mode}/$MODE_INDICATOR_PROMPT}
     fi
 
-    [[ -n $keymap ]] || return
+    zle || return
     zle reset-prompt
 }
 
@@ -389,7 +439,7 @@ vim-mode-set-up-indicators
 vim_mode_keymap_funcs+=vim-mode-update-prompt
 
 
-# Keymap mode indicator - Cursor shape {{{1
+# Editing mode indicator - Cursor shape {{{1
 #
 # Compatibility with old variable names
 (( $+ZSH_VIM_MODE_CURSOR_VIINS )) \
