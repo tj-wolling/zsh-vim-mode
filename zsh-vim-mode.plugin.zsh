@@ -532,7 +532,9 @@ vim-mode-set-cursor-style() {
        || -n $MODE_CURSOR_SEARCH ]]
     then
         case $keymap in
-            vicmd)        set-terminal-cursor-style ${=MODE_CURSOR_VICMD} ;;
+            DEFAULT)      set-terminal-cursor-style ;;
+            vicmd|visual|vline)
+                          set-terminal-cursor-style ${=MODE_CURSOR_VICMD} ;;
             isearch)      set-terminal-cursor-style ${=MODE_CURSOR_SEARCH} ;;
             main|viins|*) set-terminal-cursor-style ${=MODE_CURSOR_VIINS} ;;
         esac
@@ -540,27 +542,21 @@ vim-mode-set-cursor-style() {
 }
 
 vim-mode-cursor-init-hook() {
-    vim-mode-set-cursor-style ''
+    vim-mode-set-cursor-style viins
 }
 
 vim-mode-cursor-finish-hook() {
-    set-terminal-cursor-style
+    vim-mode-set-cursor-style DEFAULT
 }
 
-case $TERM in
-    # TODO Query terminal capabilities with escape sequences
-    # TODO Support linux, iTerm2, and others?
-    #   http://vim.wikia.com/wiki/Change_cursor_shape_in_different_modes
+if [[ $TERM = (dumb|linux|eterm-color) ]] || (( $+KONSOLE_PROFILE_NAME )); then
+    :
+else
+    vim_mode_keymap_funcs+=vim-mode-set-cursor-style
 
-    dumb | linux | eterm-color )
-        ;;
-
-    * )
-        vim_mode_keymap_funcs+=vim-mode-set-cursor-style
-        add-zsh-hook        precmd         vim-mode-cursor-init-hook
-        add-zle-hook-widget line-finish    vim-mode-cursor-finish-hook
-        ;;
-esac
+    add-zsh-hook        precmd      vim-mode-cursor-init-hook
+    add-zle-hook-widget line-finish vim-mode-cursor-finish-hook
+fi
 
 # Restore shell option 'aliases'. This must be the last thing here.
 if [[ $_vim_mode_shopt_aliases = 1 ]]; then
