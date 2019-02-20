@@ -7,7 +7,9 @@ bindkey -v
 #${(%):-%x}_debug () { print -r "$(date) $@" >> /tmp/zsh-debug-vim-mode.log 2>&1 }
 
 # Don't wait too long after <Esc> to see if it's an arrow / function key
-export KEYTIMEOUT=5
+# Warning: Setting this too low can break some zsh functionality, eg:
+#     https://github.com/zsh-users/zsh-autosuggestions/issues/254#issuecomment-345175735
+export KEYTIMEOUT=30
 
 
 # Special keys {{{1
