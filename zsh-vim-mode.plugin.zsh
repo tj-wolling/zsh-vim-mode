@@ -188,6 +188,12 @@ else
     vim-mode-bindkey viins vicmd -- history-beginning-search-forward    Down
 fi
 
+# vim closing shortcuts {{{1
+exit-cmd () {exit;}
+zle -N exit-cmd
+vim-mode-bindkey       vicmd -- exit-cmd                               ZZ
+vim-mode-bindkey       vicmd -- exit-cmd                               ZQ
+
 
 # Enable surround text-objects (quotes, brackets) {{{1
 
