@@ -129,8 +129,8 @@ vim-mode-bindkey viins vicmd -- backward-char                      '^B'
 vim-mode-bindkey viins vicmd -- end-of-line                        '^E'
 vim-mode-bindkey viins vicmd -- forward-char                       '^F'
 vim-mode-bindkey viins vicmd -- kill-line                          '^K'
-vim-mode-bindkey viins vicmd -- history-incremental-pattern-search-backward '^R'
-vim-mode-bindkey viins vicmd -- history-incremental-pattern-search-forward  '^S'
+vim-mode-bindkey viins vicmd -- history-incremental-search-backward '^R'
+vim-mode-bindkey viins vicmd -- history-incremental-search-forward  '^S'
 vim-mode-bindkey viins vicmd -- backward-kill-line                 '^U'
 vim-mode-bindkey viins vicmd -- backward-kill-word                 '^W'
 vim-mode-bindkey viins vicmd -- yank                               '^Y'
@@ -177,15 +177,15 @@ vim-mode-bindkey       vicmd -- edit-command-line                  '^V'
 
 # history-substring-search {{{1
 if [[ -n $HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND ]]; then
-    vim-mode-bindkey viins vicmd -- history-substring-search-up         '^P'
-    vim-mode-bindkey viins vicmd -- history-substring-search-down       '^N'
-    vim-mode-bindkey viins vicmd -- history-substring-search-up         Up
-    vim-mode-bindkey viins vicmd -- history-substring-search-down       Down
+    vim-mode-bindkey viins vicmd -- history-substring-search-up    '^P'
+    vim-mode-bindkey viins vicmd -- history-substring-search-down  '^N'
+    vim-mode-bindkey viins vicmd -- history-substring-search-up    Up
+    vim-mode-bindkey viins vicmd -- history-substring-search-down  Down
 else
-    vim-mode-bindkey viins vicmd -- history-beginning-search-backward   '^P'
-    vim-mode-bindkey viins vicmd -- history-beginning-search-forward    '^N'
-    vim-mode-bindkey viins vicmd -- history-beginning-search-backward   Up
-    vim-mode-bindkey viins vicmd -- history-beginning-search-forward    Down
+    vim-mode-bindkey viins vicmd -- up-line-or-history             '^P'
+    vim-mode-bindkey viins vicmd -- down-line-or-history           '^N'
+    vim-mode-bindkey viins vicmd -- up-line-or-history             Up
+    vim-mode-bindkey viins vicmd -- down-line-or-history           Down
 fi
 
 # vim closing shortcuts {{{1
