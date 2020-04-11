@@ -37,9 +37,12 @@ quotes. Type `S<` to put angle brackets around the selected text.
 Change the color and shape of the terminal cursor with:
 
 ```zsh
+MODE_CURSOR_VIINS="#00ff00 blinking bar"
+MODE_CURSOR_REPLACE="$MODE_CURSOR_VIINS #ff0000"
 MODE_CURSOR_VICMD="green block"
-MODE_CURSOR_VIINS="#20d08a blinking bar"
 MODE_CURSOR_SEARCH="#ff00ff steady underline"
+MODE_CURSOR_VISUAL="$MODE_CURSOR_VICMD steady bar"
+MODE_CURSOR_VLINE="$MODE_CURSOR_VISUAL #00ffff"
 ```
 
 Use X11 color names or `#RRGGBB` notation for colors. The recognized
@@ -52,6 +55,11 @@ appropriate for most terminals.
 If you are using `tmux` but `$TMUX` is not set (e.g., you're running
 zsh on a remote host), you may need to set `TMUX_PASSTHROUGH=1` to
 get the cursor styling to work.
+
+When in VISUAL or VLINE mode, ZSH colors text in reverse (background and
+foreground colors swapped). Depending on your terminal, this may override or
+interfere with the cursor color. Using `bar` or `underline` may display
+better than `block` in some cases.
 
 #### Disabling cursor styling
 

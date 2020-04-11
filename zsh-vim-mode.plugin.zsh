@@ -458,10 +458,16 @@ vim_mode_keymap_funcs+=vim-mode-update-prompt
 # Compatibility with old variable names
 (( $+ZSH_VIM_MODE_CURSOR_VIINS )) \
     && : ${MODE_CURSOR_VIINS=ZSH_VIM_MODE_CURSOR_VIINS}
+(( $+ZSH_VIM_MODE_CURSOR_REPLACE )) \
+    && : ${MODE_CURSOR_REPLACE=ZSH_VIM_MODE_CURSOR_REPLACE}
 (( $+ZSH_VIM_MODE_CURSOR_VICMD )) \
     && : ${MODE_CURSOR_VICMD=ZSH_VIM_MODE_CURSOR_VICMD}
 (( $+ZSH_VIM_MODE_CURSOR_ISEARCH )) \
     && : ${MODE_CURSOR_SEARCH=ZSH_VIM_MODE_CURSOR_ISEARCH}
+(( $+ZSH_VIM_MODE_CURSOR_VISUAL )) \
+    && : ${MODE_CURSOR_VISUAL=ZSH_VIM_MODE_CURSOR_VISUAL}
+(( $+ZSH_VIM_MODE_CURSOR_VLINE )) \
+    && : ${MODE_CURSOR_VLINE=ZSH_VIM_MODE_CURSOR_VLINE}
 (( $+ZSH_VIM_MODE_CURSOR_DEFAULT )) \
     && : ${MODE_CURSOR_DEFAULT=ZSH_VIM_MODE_CURSOR_DEFAULT}
 
@@ -541,16 +547,24 @@ set-terminal-cursor-style() {
 vim-mode-set-cursor-style() {
     local keymap="$1"
 
-    if [[ -n $MODE_CURSOR_VICMD \
-       || -n $MODE_CURSOR_VIINS \
-       || -n $MODE_CURSOR_SEARCH ]]
+    if [[ -n $MODE_CURSOR_VIINS \
+       || -n $MODE_CURSOR_REPLACE \
+       || -n $MODE_CURSOR_VICMD \
+       || -n $MODE_CURSOR_SEARCH \
+       || -n $MODE_CURSOR_VISUAL \
+       || -n $MODE_CURSOR_VLINE \
+       ]]
     then
         case $keymap in
-            DEFAULT)      set-terminal-cursor-style ;;
-            vicmd|visual|vline)
-                          set-terminal-cursor-style ${=MODE_CURSOR_VICMD} ;;
-            isearch)      set-terminal-cursor-style ${=MODE_CURSOR_SEARCH} ;;
-            main|viins|*) set-terminal-cursor-style ${=MODE_CURSOR_VIINS} ;;
+            DEFAULT) set-terminal-cursor-style ;;
+            replace) set-terminal-cursor-style ${=MODE_CURSOR_REPLACE-$=MODE_CURSOR_VIINS} ;;
+            vicmd)   set-terminal-cursor-style ${=MODE_CURSOR_VICMD} ;;
+            isearch) set-terminal-cursor-style ${=MODE_CURSOR_SEARCH-$=MODE_CURSOR_VIINS} ;;
+            visual)  set-terminal-cursor-style ${=MODE_CURSOR_VISUAL-$=MODE_CURSOR_VIINS} ;;
+            vline)   set-terminal-cursor-style ${=MODE_CURSOR_VLINE-${=MODE_CURSOR_VISUAL-$=MODE_CURSOR_VIINS}} ;;
+
+            main|viins|*)
+                     set-terminal-cursor-style ${=MODE_CURSOR_VIINS} ;;
         esac
     fi
 }
@@ -563,7 +577,9 @@ vim-mode-cursor-finish-hook() {
     vim-mode-set-cursor-style DEFAULT
 }
 
+# See https://github.com/softmoth/zsh-vim-mode/issues/6#issuecomment-413606070
 if [[ $TERM = (dumb|linux|eterm-color) ]] || (( $+KONSOLE_PROFILE_NAME )); then
+    # Disable cursor styling on unsupported terminals
     :
 else
     vim_mode_keymap_funcs+=vim-mode-set-cursor-style
