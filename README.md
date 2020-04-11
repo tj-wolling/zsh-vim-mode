@@ -53,6 +53,12 @@ If you are using `tmux` but `$TMUX` is not set (e.g., you're running
 zsh on a remote host), you may need to set `TMUX_PASSTHROUGH=1` to
 get the cursor styling to work.
 
+#### Disabling cursor styling
+
+Cursor styling is not enabled by default. If you do not set any
+`MODE_CURSOR_*` variables, the terminal escape sequence to change
+the cursor is not sent.
+
 ### Mode in prompt
 
 If RPS1 / RPROMPT is not set, the mode indicator will be added
@@ -98,6 +104,12 @@ inserting the new.
 
 If your theme sets `$MODE_INDICATOR`, it will be used as a default
 for `MODE_INDICATOR_VICMD` if nothing else is set.
+
+#### Disabling mode indicator in prompt
+
+If you set `MODE_INDICATOR=""`  _before_ loading this plugin, and none
+of the other `MODE_INDICATOR_*` variables are set, then the prompt
+is not modified by this plugin.
 
 ### Mode for integration with other plugins
 
