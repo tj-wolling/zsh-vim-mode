@@ -12,6 +12,8 @@ bindkey -v
 #     https://github.com/zsh-users/zsh-autosuggestions/issues/254#issuecomment-345175735
 #KEYTIMEOUT=40  # ZSH default, please see README before setting lower
 
+# Use Ctrl-D instead of Escape to enter vicmd mode
+#VIM_MODE_VICMD_KEY='^D'
 
 # Special keys {{{1
 
@@ -233,6 +235,37 @@ vim-mode-bindkey vicmd  -- delete-surround ds
 vim-mode-bindkey vicmd  -- add-surround    ys
 vim-mode-bindkey visual -- add-surround    S
 
+
+# Escape shortcut {{{1
+# From http://bewatermyfriend.org/posts/2010/08-08.21-16-02-computer.html
+#   > Copyright (c) 2010, Frank Terbeck <ft@bewatermyfriend.org>
+#   > The same licensing terms as with zsh apply.
+if (( $+VIM_MODE_VICMD_KEY )); then
+    vim-mode-bindkey viins       -- vim-mode-vi-cmd      "$VIM_MODE_VICMD_KEY"
+    vim-mode-bindkey       vicmd -- vim-mode-vi-cmd-cmd  "$VIM_MODE_VICMD_KEY"
+
+    case $VIM_MODE_VICMD_KEY in
+        ^[Dd] )
+            builtin set -o ignore_eof
+            ;;
+    esac
+
+    # Remove the Escape key binding
+    bindkey -M viins -r '^['
+fi
+
+function vim-mode-vi-cmd() {
+    zle vi-cmd-mode
+}
+
+function vim-mode-vi-cmd-cmd() {
+    # This really is only needed if VIM_MODE_VICMD_KEY = '^D', but isn't
+    # harmful regardless
+    zle -M 'Use `ZZ` to exit the shell.'
+}
+
+zle -N vim-mode-vi-cmd
+zle -N vim-mode-vi-cmd-cmd
 
 # Identifying the editing mode {{{1
 

@@ -14,8 +14,72 @@ your `.zshrc`.
 ### Additional key bindings
 
 In INSERT mode (`viins` keymap), most Emacs key bindings are available. Use
-`^A` and `^E` for beginning and end of line, `^R` for incremental search,
-etc. `<Esc>` or `<C-[>` quickly switches into NORMAL mode (`vicmd`).
+`^A` and `^E` (or `<Home>` and `<End>`) for beginning and end of line, `^R`
+for incremental search, etc.
+
+### `KEYTIMEOUT`
+
+The time it takes for `<Esc>` to switch to NORMAL mode tends to be
+`KEYTIMEOUT`, as there are bindings beginning with the escape character and
+ZSH has to wait to see if the user is typing one of them. Pressing any key
+(that doesn't follow `<Esc>` in a binding) will resolve this, and
+immediately enter NORMAL mode and apply the key. So usually this timeout is
+not a practical concern.
+
+Shortening the timeout can make the switch into NORMAL mode feel snappier.
+However, setting `KEYTIMEOUT=1`, as is often recommended, can cause subtle
+problems. A very short timeout effectively disables multi-key commands in
+NORMAL mode, which must be typed within the duration. For example, if you
+try to type `cs")` and the duration between `c` and `s` is over
+`KEYTIMEOUT`, the `s` will be treated separately and will take you back to
+INSERT mode.
+
+#### Minimal solution
+
+The minimal workaround is to avoid defining any key bindings that start with
+`<Esc>X`, where `X` is a key you might use first in NORMAL mode (such as the
+movement keys `h`, `k`, and `b`, for example). Use `<Esc>` as always, and
+just trust that the next key you type will be handled properly in NORMAL
+mode.
+
+#### Removing bindings
+
+One hard-core workaround is to [remove all bindings starting with
+`<Esc>`](http://zsh.sourceforge.net/Guide/zshguide04.html#l95), but that
+includes very useful bindings such as arrow keys. This makes ZSH
+immediately enter NORMAL mode when `<Esc>` is hit, but most people will not
+want to lose all of those bindings. But you could unbind _double_ escapes;
+that way you only lose Alt-Left and Alt-Right for word movement in INSERT
+mode:
+
+```
+# Put this in .zshrc, after this plugin is loaded
+bindkey -rpM viins '^[^['
+```
+
+Pressing `<Esc><Esc>` will then switch to NORMAL mode with no delay.
+
+#### Changing the command key
+
+One more option is to use `<Ctrl-D>` or `<Ctrl-O>` instead of `<Esc>` to
+switch into NORMAL mode. Since there are no key bindings that start with
+`<Ctrl-D>`, for example, ZSH can immediately switch to NORMAL mode when this
+key is hit. This plugin provides a setting for this behavior:
+
+```
+# In .zshrc, before this plugin is loaded:
+# Use Control-D instead of Escape to switch to NORMAL mode
+VIM_MODE_VICMD_KEY='^D'
+```
+
+You'll probably want to do this in your editor, too, so your muscle memory
+works in both the shell and editor.
+
+```
+" In .vimrc to match
+" Use Control-D instead of Escape to switch to NORMAL mode
+inoremap <C-d> <Esc>
+```
 
 ### Surround Bindings for ZSH text objects
 
@@ -139,32 +203,6 @@ set to `last`, you will be placed in NORMAL mode at the next command prompt.
 ## Compatibility
 
 This plugin uses features added in ZSH 5.3 (`add-zle-hook-widget`, etc.).
-
-### `KEYTIMEOUT`
-
-This plugin sets `KEYTIMEOUT` to a reasonably short duration. If you set it
-to `1`, as in many examples on the net, it has been known to cause some
-subtle problems. Also note that multi-key commands in NORMAL mode must be
-typed within the duration. Eg. if you try to type `cs"(` and the duration
-between `c` and `s` is over `KEYTIMEOUT`, the `s` will be treated separately
-and will take you back to INSERT mode.
-
-On the other hand, the time it takes for `<esc>` to switch to NORMAL mode 
-tends to be `KEYTIMEOUT` as there are bindings beginning with the escape
-character and ZLE has to wait to see if the user is typing one of them. A
-hard-core workaround is to [remove all bindings starting with `<esc>`](http://zsh.sourceforge.net/Guide/zshguide04.html#l95).
-But that includes arrow keys and such. More reasonably, you could unbind
-dual escapes; that way you only lose Alt-Left and Alt-Right for word
-movement in INSERT mode: 
-
-```
-bindkey -rpM viins '^[^['
-```
-
-Pressing `<esc><esc>` will then switch to NORMAL mode with no delay.
-
-Please file a report if the current `KEYTIMEOUT` setting is too brief for
-you.
 
 
 ## Bugs
