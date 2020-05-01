@@ -6,10 +6,11 @@ bindkey -v
 
 #${(%):-%x}_debug () { print -r "$(date) $@" >> /tmp/zsh-debug-vim-mode.log 2>&1 }
 
-# Don't wait too long after <Esc> to see if it's an arrow / function key
+# Configuration {{{1
+
 # Warning: Setting this too low can break some zsh functionality, eg:
 #     https://github.com/zsh-users/zsh-autosuggestions/issues/254#issuecomment-345175735
-export KEYTIMEOUT=30
+#KEYTIMEOUT=40  # ZSH default, please see README before setting lower
 
 
 # Special keys {{{1
@@ -172,7 +173,7 @@ vim-mode-bindkey       vicmd -- vi-yank-eol                        'Y'
 # edit-command-line {{{1
 autoload -U edit-command-line
 zle -N edit-command-line
-vim-mode-bindkey viins       -- edit-command-line                  '^X^E'
+vim-mode-bindkey viins vicmd -- edit-command-line                  '^X^E'
 vim-mode-bindkey       vicmd -- edit-command-line                  '^V'
 
 # history-substring-search {{{1
@@ -188,11 +189,11 @@ else
     vim-mode-bindkey viins vicmd -- down-line-or-history           Down
 fi
 
-# vim closing shortcuts {{{1
+# Vim closing shortcuts {{{1
 exit-cmd () {exit;}
 zle -N exit-cmd
-vim-mode-bindkey       vicmd -- exit-cmd                               ZZ
-vim-mode-bindkey       vicmd -- exit-cmd                               ZQ
+vim-mode-bindkey       vicmd -- exit-cmd                           Z Z
+vim-mode-bindkey       vicmd -- exit-cmd                           Z Q
 
 
 # Enable surround text-objects (quotes, brackets) {{{1
