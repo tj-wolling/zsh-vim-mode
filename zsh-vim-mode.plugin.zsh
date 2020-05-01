@@ -137,10 +137,26 @@ vim-mode-bindkey viins vicmd -- backward-kill-word                 '^W'
 vim-mode-bindkey viins vicmd -- yank                               '^Y'
 vim-mode-bindkey viins vicmd -- undo                               '^_'
 
-vim-mode-bindkey viins vicmd -- backward-word                      '^[b'
-vim-mode-bindkey viins vicmd -- kill-word                          '^[d'
-vim-mode-bindkey viins vicmd -- forward-word                       '^[f'
+if (( ! $+VIM_MODE_VICMD_KEY )); then
+    # Avoid key bindings that conflict with <Esc> entering NORMAL mode, like
+    # - common movement keys (hljkbwfF...)
+    # - common actions (dxcr...)
+    vim-mode-bindkey viins vicmd -- backward-word                  '^[b'
+    vim-mode-bindkey viins vicmd -- kill-word                      '^[d'
+    vim-mode-bindkey viins vicmd -- forward-word                   '^[f'
+    vim-mode-bindkey viins       -- run-help                       '^[h'
+    # u is not likely to cause conflict, but keep it here with l
+    vim-mode-bindkey viins       -- up-case-word                   '^[u'
+    vim-mode-bindkey viins       -- down-case-word                 '^[l'
+fi
+
+# Some <Esc>-prefixed bindings that should rarely conflict with NORMAL mode,
+# so always define them
+# '.' usually comes after some other keystrokes
 vim-mode-bindkey viins vicmd -- insert-last-word                   '^[.'
+# 'g...' bindings are not commonly-used; see `bindkey -pM vicmd g`
+vim-mode-bindkey viins       -- get-line                           '^[g'
+vim-mode-bindkey viins       -- push-line                          '^Q'
 
 vim-mode-bindkey viins vicmd -- beginning-of-line                  Home
 vim-mode-bindkey viins vicmd -- end-of-line                        End
@@ -159,12 +175,6 @@ vim-mode-bindkey viins       -- backward-delete-char               '^H'
 vim-mode-bindkey viins       -- backward-delete-char               '^?'
 vim-mode-bindkey viins       -- redisplay                          '^X^R'
 vim-mode-bindkey viins       -- exchange-point-and-mark            '^X^X'
-vim-mode-bindkey viins       -- run-help                           '^[h'
-vim-mode-bindkey viins       -- up-case-word                       '^[u'
-vim-mode-bindkey viins       -- down-case-word                     '^[l'
-vim-mode-bindkey viins       -- push-line                          '^Q'
-vim-mode-bindkey viins       -- accept-line                        '^M'
-vim-mode-bindkey viins       -- get-line                           '^[g'
 
 vim-mode-bindkey       vicmd -- run-help                           'H'
 vim-mode-bindkey       vicmd -- redo                               'U'
