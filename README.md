@@ -40,7 +40,9 @@ The minimal workaround is to avoid defining any key bindings that start with
 `<Esc>X`, where `X` is a key you might use first in NORMAL mode (such as the
 movement keys `h`, `k`, and `b`, for example). Use `<Esc>` as always, and
 just trust that the next key you type will be handled properly in NORMAL
-mode.
+mode. This plugin is careful to avoid bindings in INSERT mode that might
+conflict with switching to NORMAL mode, but please open an issue if you run
+into a problem.
 
 #### Removing bindings
 
@@ -57,17 +59,18 @@ mode:
 bindkey -rpM viins '^[^['
 ```
 
-Pressing `<Esc><Esc>` will then switch to NORMAL mode with no delay.
+Pressing `<Esc><Esc>` will then switch to NORMAL mode with no delay,
+every time.
 
 #### Changing the command key
 
-One more option is to use `<Ctrl-D>` or `<Ctrl-O>` instead of `<Esc>` to
-switch into NORMAL mode. Since there are no key bindings that start with
-`<Ctrl-D>`, for example, ZSH can immediately switch to NORMAL mode when this
-key is hit. This plugin provides a setting for this behavior:
+One more option is to use another key, like`<Ctrl-D>`, to switch into NORMAL
+mode. Since there are no key bindings that start with `<Ctrl-D>`, ZSH can
+immediately switch to NORMAL mode when this key is hit. This plugin provides
+a setting for this behavior:
 
 ```
-# In .zshrc, before this plugin is loaded:
+# Add to .zshrc, before this plugin is loaded:
 # Use Control-D instead of Escape to switch to NORMAL mode
 VIM_MODE_VICMD_KEY='^D'
 ```
@@ -76,7 +79,7 @@ You'll probably want to do this in your editor, too, so your muscle memory
 works in both the shell and editor.
 
 ```
-" In .vimrc to match
+" Add to .vimrc
 " Use Control-D instead of Escape to switch to NORMAL mode
 inoremap <C-d> <Esc>
 ```
