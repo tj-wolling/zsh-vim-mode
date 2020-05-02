@@ -249,9 +249,6 @@ if (( $+VIM_MODE_VICMD_KEY )); then
             builtin set -o ignore_eof
             ;;
     esac
-
-    # Remove the Escape key binding
-    bindkey -M viins -r '^['
 fi
 
 function vim-mode-vi-cmd() {
