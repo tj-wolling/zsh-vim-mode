@@ -241,28 +241,25 @@ vim-mode-bindkey visual -- add-surround    S
 #   > Copyright (c) 2010, Frank Terbeck <ft@bewatermyfriend.org>
 #   > The same licensing terms as with zsh apply.
 if (( $+VIM_MODE_VICMD_KEY )); then
-    vim-mode-bindkey viins       -- vim-mode-vi-cmd      "$VIM_MODE_VICMD_KEY"
-    vim-mode-bindkey       vicmd -- vim-mode-vi-cmd-cmd  "$VIM_MODE_VICMD_KEY"
+    vim-mode-bindkey viins -- vi-cmd-mode "$VIM_MODE_VICMD_KEY"
 
     case $VIM_MODE_VICMD_KEY in
         ^[Dd] )
             builtin set -o ignore_eof
+            vim-mode-bindkey vicmd -- vim-mode-accept-or-eof "$VIM_MODE_VICMD_KEY"
             ;;
     esac
 fi
 
-function vim-mode-vi-cmd() {
-    zle vi-cmd-mode
+function vim-mode-accept-or-eof() {
+    if [[ $#BUFFER = 0 ]]; then
+        exit
+    else
+        zle accept-line
+    fi
 }
 
-function vim-mode-vi-cmd-cmd() {
-    # This really is only needed if VIM_MODE_VICMD_KEY = '^D', but isn't
-    # harmful regardless
-    zle -M 'Use `ZZ` to exit the shell.'
-}
-
-zle -N vim-mode-vi-cmd
-zle -N vim-mode-vi-cmd-cmd
+zle -N vim-mode-accept-or-eof
 
 # Identifying the editing mode {{{1
 
