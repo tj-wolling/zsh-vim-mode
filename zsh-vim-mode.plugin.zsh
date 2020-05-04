@@ -12,6 +12,9 @@ bindkey -v
 #     https://github.com/zsh-users/zsh-autosuggestions/issues/254#issuecomment-345175735
 #KEYTIMEOUT=40  # ZSH default, please see README before setting lower
 
+# Some <Esc>-prefixed bindings that should rarely conflict with NORMAL mode
+#VIM_MODE_ESC_PREFIXED_WANTED='bdfhul.g'
+
 # Use Ctrl-D instead of Escape to enter vicmd mode
 #VIM_MODE_VICMD_KEY='^D'
 
@@ -140,25 +143,36 @@ vim-mode-bindkey viins vicmd -- backward-kill-word                 '^W'
 vim-mode-bindkey viins vicmd -- yank                               '^Y'
 vim-mode-bindkey viins vicmd -- undo                               '^_'
 
-if (( $+VIM_MODE_VICMD_KEY )); then
-    # Avoid key bindings that conflict with <Esc> entering NORMAL mode, like
-    # - common movement keys (hljkbwfF...)
-    # - common actions (dxcr...)
-    vim-mode-bindkey viins vicmd -- backward-word                  '^[b'
-    vim-mode-bindkey viins vicmd -- kill-word                      '^[d'
-    vim-mode-bindkey viins vicmd -- forward-word                   '^[f'
-    vim-mode-bindkey viins       -- run-help                       '^[h'
-    # u is not likely to cause conflict, but keep it here with l
-    vim-mode-bindkey viins       -- up-case-word                   '^[u'
-    vim-mode-bindkey viins       -- down-case-word                 '^[l'
-fi
+# Avoid key bindings that conflict with <Esc> entering NORMAL mode, like
+# - common movement keys (hljk...)
+# - common actions (dxcr...)
+# But make this configurable: some people will never use ^[b and would
+# rather be sure not to have a conflict, while others use it a lot and will
+# rarely type 'b' as the first key in NORMAL mode. Which behavior shoudl win
+# is very user-dependent.
+vim-mode-maybe-bind() {
+    local k="$1"; shift
+    if (( $+VIM_MODE_VICMD_KEY )) \
+        || [[ ${VIM_MODE_ESC_PREFIXED_WANTED-bdf.g} = *${k}* ]];
+    then
+        vim-mode-bindkey "$@"
+    fi
+}
+
+vim-mode-maybe-bind b viins vicmd -- backward-word                 '^[b'
+vim-mode-maybe-bind d viins vicmd -- kill-word                     '^[d'
+vim-mode-maybe-bind f viins vicmd -- forward-word                  '^[f'
+vim-mode-maybe-bind h viins       -- run-help                      '^[h'
+# u is not likely to cause conflict, but keep it here with l
+vim-mode-maybe-bind u viins       -- up-case-word                  '^[u'
+vim-mode-maybe-bind l viins       -- down-case-word                '^[l'
 
 # Some <Esc>-prefixed bindings that should rarely conflict with NORMAL mode,
 # so always define them
 # '.' usually comes after some other keystrokes
-vim-mode-bindkey viins vicmd -- insert-last-word                   '^[.'
+vim-mode-maybe-bind . viins vicmd -- insert-last-word              '^[.'
 # 'g...' bindings are not commonly-used; see `bindkey -pM vicmd g`
-vim-mode-bindkey viins       -- get-line                           '^[g'
+vim-mode-maybe-bind g viins       -- get-line                      '^[g'
 vim-mode-bindkey viins       -- push-line                          '^Q'
 
 vim-mode-bindkey viins vicmd -- beginning-of-line                  Home
@@ -261,6 +275,8 @@ function vim-mode-accept-or-eof() {
 }
 
 zle -N vim-mode-accept-or-eof
+
+unfunction vim-mode-maybe-bind
 
 # Identifying the editing mode {{{1
 

@@ -38,11 +38,21 @@ INSERT mode.
 
 The minimal workaround is to avoid defining any key bindings that start with
 `<Esc>X`, where `X` is a key you might use first in NORMAL mode (such as the
-movement keys `h`, `k`, and `b`, for example). Use `<Esc>` as always, and
+movement keys `h` or `k`, for example). Use `<Esc>` as always, and
 just trust that the next key you type will be handled properly in NORMAL
-mode. This plugin is careful to avoid bindings in INSERT mode that might
-conflict with switching to NORMAL mode, but please open an issue if you run
-into a problem.
+mode.
+
+This plugin is careful to avoid bindings in INSERT mode that might conflict
+with switching to NORMAL mode. You can configure which bindings it adds:
+
+```
+# Put this in .zshrc, before this plugin is loaded
+# Enable <Esc>-prefixed bindings that should rarely conflict with NORMAL mode
+VIM_MODE_ESC_PREFIXED_WANTED='bdfhul.g'  # Default is 'bdf.g'
+```
+
+Please open an issue if you run find a conflicting binding you can not turn
+off (or are missing a handy Emacs-like binding that you can't turn on).
 
 #### Removing bindings
 
