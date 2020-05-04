@@ -53,10 +53,11 @@ vim-mode-define-special-key Right      kcuf1 "^[[C" "^[OC"
 vim-mode-define-special-key Up         kcuu1 "^[[A" "^[OA"
 vim-mode-define-special-key Down       kcud1 "^[[B" "^[OB"
 # These are XTerm, others should be found in terminfo
+# See issue #16 for Home/End special case
+vim-mode-define-special-key Home       khome "^[[1~" "^[[H"
+vim-mode-define-special-key End        kend  "^[[4~" "^[[F"
 vim-mode-define-special-key PgUp       kpp   "^[[5~"
 vim-mode-define-special-key PgDown     knp   "^[[6~"
-vim-mode-define-special-key Home       khome "^[[1~"
-vim-mode-define-special-key End        kend  "^[[4~"
 vim-mode-define-special-key Insert     kich1 "^[[2~"
 vim-mode-define-special-key Delete     kdch1 "^[[3~"
 vim-mode-define-special-key Shift-Tab  kcbt  "^[[Z"
@@ -139,7 +140,7 @@ vim-mode-bindkey viins vicmd -- backward-kill-word                 '^W'
 vim-mode-bindkey viins vicmd -- yank                               '^Y'
 vim-mode-bindkey viins vicmd -- undo                               '^_'
 
-if (( ! $+VIM_MODE_VICMD_KEY )); then
+if (( $+VIM_MODE_VICMD_KEY )); then
     # Avoid key bindings that conflict with <Esc> entering NORMAL mode, like
     # - common movement keys (hljkbwfF...)
     # - common actions (dxcr...)
