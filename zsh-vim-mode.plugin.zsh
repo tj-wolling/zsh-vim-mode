@@ -23,10 +23,11 @@ bindkey -v
 # https://github.com/robbyrussell/oh-my-zsh/pull/5113
 #
 # So for now, leave smkx untouched, and let the framework deal with it.
+# Instead, read from terminfo but also hard-code values that various
+# terminals use.
 #
-# I'm not sure this method is correct, but it should be more correct
-# than before, and hopefully flexible enough to adapt if problems are
-# reported.
+# Please open an issue if your special keys (Home, End, arrow keys,
+# etc.) are not being recognized here!
 #
 # Extra info:
 # http://invisible-island.net/xterm/xterm.faq.html#xterm_arrows
@@ -52,8 +53,7 @@ vim-mode-define-special-key Left       kcub1 "^[[D" "^[OD"
 vim-mode-define-special-key Right      kcuf1 "^[[C" "^[OC"
 vim-mode-define-special-key Up         kcuu1 "^[[A" "^[OA"
 vim-mode-define-special-key Down       kcud1 "^[[B" "^[OB"
-# These are XTerm, others should be found in terminfo
-# See issue #16 for Home/End special case
+# These are XTerm and various others
 vim-mode-define-special-key Home       khome "^[[1~" "^[[H"
 vim-mode-define-special-key End        kend  "^[[4~" "^[[F"
 vim-mode-define-special-key PgUp       kpp   "^[[5~"
