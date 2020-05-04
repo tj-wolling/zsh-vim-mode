@@ -238,4 +238,6 @@ Some of this code is mangled together from blogs, mailing lists, random
 repositories, and other plugins. If you have any licensing concerns, please
 open an issue so it can be addressed. That being said, to the extent possible:
 
-This code is released under the MIT license.
+This code is released under the [MIT license][].
+
+[MIT license]: https://github.com/softmoth/zsh-vim-mode/blob/master/LICENSE
