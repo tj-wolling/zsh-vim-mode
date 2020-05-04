@@ -1,23 +1,25 @@
-# zsh-vim-mode
+= zsh-vim-mode
+:toc: preamble
+:issues: https://github.com/softmoth/zsh-vim-mode/issues
+:license: https://github.com/softmoth/zsh-vim-mode/blob/master/LICENSE
 
 Friendly bindings for ZSH's vi mode
 
-## Installation
+== Installation
+:zshplugmgr: https://github.com/unixorn/awesome-zsh-plugins/blob/master/README.md#installation
 
-Install this plugin with any [ZSH plugin manager][], or just source it from
-your `.zshrc`.
+Install this plugin with any {zshplugmgr}[ZSH plugin manager], or just
+source it from your `.zshrc`.
 
-[ZSH plugin manager]: https://github.com/unixorn/awesome-zsh-plugins/blob/master/README.md#installation
+== Features
 
-## Features
-
-### Additional key bindings
+=== Additional key bindings
 
 In INSERT mode (`viins` keymap), most Emacs key bindings are available. Use
 `^A` and `^E` (or `<Home>` and `<End>`) for beginning and end of line, `^R`
 for incremental search, etc.
 
-### `KEYTIMEOUT`
+=== `KEYTIMEOUT`
 
 The time it takes for `<Esc>` to switch to NORMAL mode tends to be
 `KEYTIMEOUT`, as there are bindings beginning with the escape character and
@@ -34,7 +36,7 @@ try to type `cs")` and the duration between `c` and `s` is over
 `KEYTIMEOUT`, the `s` will be treated separately and will take you back to
 INSERT mode.
 
-#### Minimal solution
+==== Minimal solution
 
 The minimal workaround is to avoid defining any key bindings that start with
 `<Esc>X`, where `X` is a key you might use first in NORMAL mode (such as the
@@ -54,11 +56,12 @@ VIM_MODE_ESC_PREFIXED_WANTED='bdfhul.g'  # Default is 'bdf.g'
 Please open an issue if you run find a conflicting binding you can not turn
 off (or are missing a handy Emacs-like binding that you can't turn on).
 
-#### Removing bindings
+==== Removing bindings
+:zguide: http://zsh.sourceforge.net/Guide/zshguide04.html#l95
 
-One hard-core workaround is to [remove all bindings starting with
-`<Esc>`](http://zsh.sourceforge.net/Guide/zshguide04.html#l95), but that
-includes very useful bindings such as arrow keys. This makes ZSH
+One hard-core workaround is to
+{zguide}[remove all bindings starting with `<Esc>`],
+but that includes very useful bindings such as arrow keys. This makes ZSH
 immediately enter NORMAL mode when `<Esc>` is hit, but most people will not
 want to lose all of those bindings. But you could unbind _double_ escapes;
 that way you only lose Alt-Left and Alt-Right for word movement in INSERT
@@ -72,9 +75,9 @@ bindkey -rpM viins '^[^['
 Pressing `<Esc><Esc>` will then switch to NORMAL mode with no delay,
 every time.
 
-#### Changing the command key
+==== Changing the command key
 
-One more option is to use another key, like`<Ctrl-D>`, to switch into NORMAL
+One more option is to use another key, like `<Ctrl-D>`, to switch into NORMAL
 mode. Since there are no key bindings that start with `<Ctrl-D>`, ZSH can
 immediately switch to NORMAL mode when this key is hit. This plugin provides
 a setting for this behavior:
@@ -94,10 +97,12 @@ works in both the shell and editor.
 inoremap <C-d> <Esc>
 ```
 
-### Surround Bindings for ZSH text objects
+=== Surround Bindings for ZSH text objects
+:surroundbindings: https://sourceforge.net/p/zsh/code/ci/master/tree/Functions/Zle/surround
 
 ZSH has support for text objects since 5.0.8. This plugin adds the
-[suggested bindings][] to use surround-type objects. For example, when in
+{surroundbindings}[suggested bindings]
+to use surround-type objects. For example, when in
 NORMAL mode with the cursor inside a double-quoted string, type `ci"` to
 change the contents of the string. Or type `cs"(` to change the quotes to
 parentheses. Type `ds(` to remove the parentheses. Type `ys2W]` to surround
@@ -107,9 +112,8 @@ In visual mode, type `a[` to select the surrounding bracketed text
 (including the brackets), or type `i'` to select the text within single
 quotes. Type `S<` to put angle brackets around the selected text.
 
-[suggested bindings]: https://sourceforge.net/p/zsh/code/ci/master/tree/Functions/Zle/surround
 
-### Mode-sensitive cursor styling
+=== Mode-sensitive cursor styling
 
 Change the color and shape of the terminal cursor with:
 
@@ -138,13 +142,13 @@ foreground colors swapped). Depending on your terminal, this may override or
 interfere with the cursor color. Using `bar` or `underline` may display
 better than `block` in some cases.
 
-#### Disabling cursor styling
+==== Disabling cursor styling
 
 Cursor styling is not enabled by default. If you do not set any
 `MODE_CURSOR_*` variables, the terminal escape sequence to change
 the cursor is not sent.
 
-### Mode in prompt
+=== Mode in prompt
 
 If RPS1 / RPROMPT is not set, the mode indicator will be added
 automatically. The appearance can be set with:
@@ -190,18 +194,18 @@ inserting the new.
 If your theme sets `$MODE_INDICATOR`, it will be used as a default
 for `MODE_INDICATOR_VICMD` if nothing else is set.
 
-#### Disabling mode indicator in prompt
+==== Disabling mode indicator in prompt
 
 If you set `MODE_INDICATOR=""`  _before_ loading this plugin, and none
 of the other `MODE_INDICATOR_*` variables are set, then the prompt
 is not modified by this plugin.
 
-### Mode for integration with other plugins
+=== Mode for integration with other plugins
 
 The `$VIM_MODE_KEYMAP` variable is set to `viins`, `vicmd`, `replace`,
 `isearch`, `visual` or `vline` for easy inspection from other plugins.
 
-### Changing the initial editing mode
+=== Changing the initial editing mode
 
 ZSH initially is in INSERT mode (the `viins` keymap) with each new command
 prompt. If you want to always start in NORMAL mode (the `vicmd` keymap), set
@@ -213,15 +217,15 @@ to go back three Words and delete a word, you are still in NORMAL mode. If
 you type `<Enter>` to submit the command, and `VIM_MODE_INITIAL_KEYMAP` is
 set to `last`, you will be placed in NORMAL mode at the next command prompt.
 
-## Compatibility
+== Compatibility
 
 This plugin uses features added in ZSH 5.3 (`add-zle-hook-widget`, etc.).
 
 
-## Bugs
+== Bugs
 
 If you find this doesn't work with your terminal, your plugins, your
-settings or your version of ZSH, please [open an issue][issues]. If
+settings or your version of ZSH, please {issues}[open an issue]. If
 it clobbers some setting that it shouldn't, please open an issue.
 
 It is usually helpful to create a clean `.zshrc` that only contains
@@ -230,14 +234,11 @@ issue disappears, then please start adding back items from your
 configuration until you find one that causes the problem. Put that test
 `.zshrc` in the bug report. Thanks!
 
-[issues]: https://github.com/softmoth/zsh-vim-mode/issues
 
-## License
+== License
 
 Some of this code is mangled together from blogs, mailing lists, random
 repositories, and other plugins. If you have any licensing concerns, please
 open an issue so it can be addressed. That being said, to the extent possible:
 
-This code is released under the [MIT license][].
-
-[MIT license]: https://github.com/softmoth/zsh-vim-mode/blob/master/LICENSE
+This code is released under the {license}[MIT license].
