@@ -6,17 +6,6 @@ bindkey -v
 
 #${(%):-%x}_debug () { print -r "$(date) $@" >> /tmp/zsh-debug-vim-mode.log 2>&1 }
 
-# Configuration {{{1
-
-# Warning: Setting this too low can break some zsh functionality, eg:
-#     https://github.com/zsh-users/zsh-autosuggestions/issues/254#issuecomment-345175735
-#KEYTIMEOUT=40  # ZSH default, please see README before setting lower
-
-# Some <Esc>-prefixed bindings that should rarely conflict with NORMAL mode
-#VIM_MODE_ESC_PREFIXED_WANTED='bdfhul.g'
-
-# Use Ctrl-D instead of Escape to enter vicmd mode
-#VIM_MODE_VICMD_KEY='^D'
 
 # Special keys {{{1
 
@@ -197,13 +186,11 @@ vim-mode-bindkey       vicmd -- run-help                           'H'
 vim-mode-bindkey       vicmd -- redo                               'U'
 vim-mode-bindkey       vicmd -- vi-yank-eol                        'Y'
 
-# edit-command-line {{{1
 autoload -U edit-command-line
 zle -N edit-command-line
 vim-mode-bindkey viins vicmd -- edit-command-line                  '^X^E'
 vim-mode-bindkey       vicmd -- edit-command-line                  '^V'
 
-# history-substring-search {{{1
 if [[ -n $HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND ]]; then
     vim-mode-bindkey viins vicmd -- history-substring-search-up    '^P'
     vim-mode-bindkey viins vicmd -- history-substring-search-down  '^N'
@@ -216,7 +203,6 @@ else
     vim-mode-bindkey viins vicmd -- down-line-or-history           Down
 fi
 
-# Vim closing shortcuts {{{1
 exit-cmd () {exit;}
 zle -N exit-cmd
 vim-mode-bindkey       vicmd -- exit-cmd                           Z Z
@@ -262,19 +248,18 @@ if (( $+VIM_MODE_VICMD_KEY )); then
         ^[Dd] )
             builtin set -o ignore_eof
             vim-mode-bindkey vicmd -- vim-mode-accept-or-eof "$VIM_MODE_VICMD_KEY"
+
+            function vim-mode-accept-or-eof() {
+                if [[ $#BUFFER = 0 ]]; then
+                    exit
+                else
+                    zle accept-line
+                fi
+            }
+            zle -N vim-mode-accept-or-eof
             ;;
     esac
 fi
-
-function vim-mode-accept-or-eof() {
-    if [[ $#BUFFER = 0 ]]; then
-        exit
-    else
-        zle accept-line
-    fi
-}
-
-zle -N vim-mode-accept-or-eof
 
 unfunction vim-mode-maybe-bind
 
@@ -554,8 +539,8 @@ send-terminal-sequence() {
     local sequence="$1"
     local is_tmux
 
-    # Allow forcing TMUX_PASSTHROUGH on. For example, if running tmux locally and
-    # running zsh remotely, where $TMUX is not set (and shouldn't be).
+    # Allow forcing TMUX_PASSTHROUGH on. For example, if running tmux locally
+    # and running zsh remotely, where $TMUX is not set (and shouldn't be).
     if [[ -n $TMUX_PASSTHROUGH ]] || [[ -n $TMUX ]]; then
         is_tmux=1
     fi

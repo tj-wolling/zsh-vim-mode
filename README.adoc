@@ -5,15 +5,18 @@
 
 Friendly bindings for ZSH's vi mode
 
-== Installation
+== Installation and configuration
 :zshplugmgr: https://github.com/unixorn/awesome-zsh-plugins/blob/master/README.md#installation
 
 Install this plugin with any {zshplugmgr}[ZSH plugin manager], or just
-source it from your `.zshrc`.
+source it from your `.zshrc`:
 
-== Features
+```
+# In .zshrc
+source "$HOME/zsh-vim-mode/zsh-vim-mode.plugin.zsh"
+```
 
-=== Additional key bindings
+== Additional key bindings
 
 In INSERT mode (`viins` keymap), most Emacs key bindings are available. Use
 `^A` and `^E` (or `<Home>` and `<End>`) for beginning and end of line, `^R`
@@ -47,7 +50,7 @@ mode.
 This plugin is careful to avoid bindings in INSERT mode that might conflict
 with switching to NORMAL mode. You can configure which bindings it adds:
 
-```
+```zsh
 # Put this in .zshrc, before this plugin is loaded
 # Enable <Esc>-prefixed bindings that should rarely conflict with NORMAL mode
 VIM_MODE_ESC_PREFIXED_WANTED='bdfhul.g'  # Default is 'bdf.g'
@@ -67,7 +70,7 @@ want to lose all of those bindings. But you could unbind _double_ escapes;
 that way you only lose Alt-Left and Alt-Right for word movement in INSERT
 mode:
 
-```
+```zsh
 # Put this in .zshrc, after this plugin is loaded
 bindkey -rpM viins '^[^['
 ```
@@ -82,7 +85,7 @@ mode. Since there are no key bindings that start with `<Ctrl-D>`, ZSH can
 immediately switch to NORMAL mode when this key is hit. This plugin provides
 a setting for this behavior:
 
-```
+```zsh
 # Add to .zshrc, before this plugin is loaded:
 # Use Control-D instead of Escape to switch to NORMAL mode
 VIM_MODE_VICMD_KEY='^D'
@@ -91,7 +94,7 @@ VIM_MODE_VICMD_KEY='^D'
 You'll probably want to do this in your editor, too, so your muscle memory
 works in both the shell and editor.
 
-```
+```zsh
 " Add to .vimrc
 " Use Control-D instead of Escape to switch to NORMAL mode
 inoremap <C-d> <Esc>
@@ -112,6 +115,16 @@ In visual mode, type `a[` to select the surrounding bracketed text
 (including the brackets), or type `i'` to select the text within single
 quotes. Type `S<` to put angle brackets around the selected text.
 
+=== Editing mode tracking
+
+This plugin carefully tracks the editing mode state in order to provide
+feedback about what keymap is active. While ZSH provides basic support for
+this via its `$KEYMAP` variable, that only switches between `viins` (INSERT)
+and `vicmd` (NORMAL) modes.
+
+The `$VIM_MODE_KEYMAP` variable is set to `viins`, `vicmd`, `replace`,
+`isearch`, `visual` or `vline`. This is available for easy inspection from
+other plugins or prompt themes.
 
 === Mode-sensitive cursor styling
 
@@ -200,12 +213,7 @@ If you set `MODE_INDICATOR=""`  _before_ loading this plugin, and none
 of the other `MODE_INDICATOR_*` variables are set, then the prompt
 is not modified by this plugin.
 
-=== Mode for integration with other plugins
-
-The `$VIM_MODE_KEYMAP` variable is set to `viins`, `vicmd`, `replace`,
-`isearch`, `visual` or `vline` for easy inspection from other plugins.
-
-=== Changing the initial editing mode
+=== Changing the initial editing keymap
 
 ZSH initially is in INSERT mode (the `viins` keymap) with each new command
 prompt. If you want to always start in NORMAL mode (the `vicmd` keymap), set
