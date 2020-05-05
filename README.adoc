@@ -5,7 +5,7 @@
 
 Friendly bindings for ZSH's vi mode
 
-== Installation and configuration
+== Installation
 :zshplugmgr: https://github.com/unixorn/awesome-zsh-plugins/blob/master/README.md#installation
 
 Install this plugin with any {zshplugmgr}[ZSH plugin manager], or just
@@ -21,6 +21,21 @@ source "$HOME/zsh-vim-mode/zsh-vim-mode.plugin.zsh"
 In INSERT mode (`viins` keymap), most Emacs key bindings are available. Use
 `^A` and `^E` (or `<Home>` and `<End>`) for beginning and end of line, `^R`
 for incremental search, etc.
+
+=== Surround Bindings for ZSH text objects
+:surroundbindings: https://sourceforge.net/p/zsh/code/ci/master/tree/Functions/Zle/surround
+
+ZSH has support for text objects since 5.0.8. This plugin adds the
+{surroundbindings}[suggested bindings]
+to use surround-type objects. For example, when in
+NORMAL mode with the cursor inside a double-quoted string, type `ci"` to
+change the contents of the string. Or type `cs"(` to change the quotes to
+parentheses. Type `ds(` to remove the parentheses. Type `ys2W]` to surround
+the following two Words with brackets.
+
+In visual mode, type `a[` to select the surrounding bracketed text
+(including the brackets), or type `i'` to select the text within single
+quotes. Type `S<` to put angle brackets around the selected text.
 
 === `KEYTIMEOUT`
 
@@ -94,28 +109,13 @@ VIM_MODE_VICMD_KEY='^D'
 You'll probably want to do this in your editor, too, so your muscle memory
 works in both the shell and editor.
 
-```zsh
+```vim
 " Add to .vimrc
 " Use Control-D instead of Escape to switch to NORMAL mode
 inoremap <C-d> <Esc>
 ```
 
-=== Surround Bindings for ZSH text objects
-:surroundbindings: https://sourceforge.net/p/zsh/code/ci/master/tree/Functions/Zle/surround
-
-ZSH has support for text objects since 5.0.8. This plugin adds the
-{surroundbindings}[suggested bindings]
-to use surround-type objects. For example, when in
-NORMAL mode with the cursor inside a double-quoted string, type `ci"` to
-change the contents of the string. Or type `cs"(` to change the quotes to
-parentheses. Type `ds(` to remove the parentheses. Type `ys2W]` to surround
-the following two Words with brackets.
-
-In visual mode, type `a[` to select the surrounding bracketed text
-(including the brackets), or type `i'` to select the text within single
-quotes. Type `S<` to put angle brackets around the selected text.
-
-=== Editing mode tracking
+== Editing keymap tracking
 
 This plugin carefully tracks the editing mode state in order to provide
 feedback about what keymap is active. While ZSH provides basic support for
@@ -126,7 +126,7 @@ The `$VIM_MODE_KEYMAP` variable is set to `viins`, `vicmd`, `replace`,
 `isearch`, `visual` or `vline`. This is available for easy inspection from
 other plugins or prompt themes.
 
-==== Disabling keymap tracking
+=== Disabling keymap tracking
 
 Tracking the keymap at this level requires hooking in to the ZSH line editor
 for each keystroke. While the goal is for this to be efficient and
@@ -229,7 +229,7 @@ If you set `MODE_INDICATOR=""`  _before_ loading this plugin, and none
 of the other `MODE_INDICATOR_*` variables are set, then the prompt
 is not modified by this plugin.
 
-=== Changing the initial editing keymap
+== Changing the initial editing keymap
 
 ZSH initially is in INSERT mode (the `viins` keymap) with each new command
 prompt. If you want to always start in NORMAL mode (the `vicmd` keymap), set
