@@ -126,6 +126,22 @@ The `$VIM_MODE_KEYMAP` variable is set to `viins`, `vicmd`, `replace`,
 `isearch`, `visual` or `vline`. This is available for easy inspection from
 other plugins or prompt themes.
 
+==== Disabling keymap tracking
+
+Tracking the keymap at this level requires hooking in to the ZSH line editor
+for each keystroke. While the goal is for this to be efficient and
+trouble-free, you may want to disable it entirely if you do not use the
+feedback it provides. To disable _all_ mode-sensitive feedback and
+behavior from this plugin,
+__including cursor styling, prompt indicator and initial keymap__,
+set this:
+
+```zsh
+# Disable all tracking of editing keymap, cursor styling, prompt indicators,
+# etc.
+VIM_MODE_TRACK_KEYMAP=no
+```
+
 === Mode-sensitive cursor styling
 
 Change the color and shape of the terminal cursor with:
