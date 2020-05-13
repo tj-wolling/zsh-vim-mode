@@ -376,8 +376,7 @@ if [[ $VIM_MODE_TRACK_KEYMAP != no ]]; then
 
         #${(%):-%x}_debug "     -> $keymap"
 
-        # FIXME: Temporary test for issue #23
-        #[[ $VIM_MODE_KEYMAP = $keymap ]] && return
+        [[ $VIM_MODE_KEYMAP = $keymap ]] && return
 
         # Can be used by prompt themes, etc.
         VIM_MODE_KEYMAP=$keymap
