@@ -175,6 +175,8 @@ foreground colors swapped). Depending on your terminal, this may override or
 interfere with the cursor color. Using `bar` or `underline` may display
 better than `block` in some cases.
 
+[SsSe]: https://github.com/softmoth/zsh-vim-mode/issues/23#issuecomment-627991663
+
 ==== Disabling cursor styling
 
 Cursor styling is not enabled by default. If you do not set any
