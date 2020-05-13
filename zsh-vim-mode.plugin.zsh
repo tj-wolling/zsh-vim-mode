@@ -376,7 +376,8 @@ if [[ $VIM_MODE_TRACK_KEYMAP != no ]]; then
 
         #${(%):-%x}_debug "     -> $keymap"
 
-        [[ $VIM_MODE_KEYMAP = $keymap ]] && return
+        # FIXME: Temporary test for issue #23
+        #[[ $VIM_MODE_KEYMAP = $keymap ]] && return
 
         # Can be used by prompt themes, etc.
         VIM_MODE_KEYMAP=$keymap
@@ -540,16 +541,12 @@ if [[ $VIM_MODE_TRACK_KEYMAP != no ]]; then
         local sequence="$1"
         local is_tmux
 
-        # Allow forcing TMUX_PASSTHROUGH on. For example, if running tmux locally
-        # and running zsh remotely, where $TMUX is not set (and shouldn't be).
-        if [[ -n $TMUX_PASSTHROUGH ]] || [[ -n $TMUX ]]; then
-            is_tmux=1
-        fi
-
-        if [[ -n $is_tmux ]]; then
+        # Older TMUX (before 1.5) does not handle cursor styling and needs
+        # to be told to pass those escape sequences directly to the terminal
+        if [[ $TMUX_PASSTHROUGH = 1 ]]; then
             # Double each escape (see zshbuiltins(1) echo for backslash escapes)
             # And wrap it in the TMUX DCS passthrough
-            sequence=${sequence//\\(e|x27|033|u001[bB]|U0000001[bB])/\\e\\e}
+            sequence=${sequence//\\(e|x27|033|[uU]00*1[bB])/\\e\\e}
             sequence="\ePtmux;$sequence\e\\"
         fi
         print -n "$sequence"

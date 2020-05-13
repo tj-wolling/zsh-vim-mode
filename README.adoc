@@ -155,15 +155,19 @@ MODE_CURSOR_VISUAL="$MODE_CURSOR_VICMD steady bar"
 MODE_CURSOR_VLINE="$MODE_CURSOR_VISUAL #00ffff"
 ```
 
-Use X11 color names or `#RRGGBB` notation for colors. The recognized
-style words are `steady`, `blinking`, `block`, `underline` and `bar`.
+Use `#RRGGBB` notation for  for colors. Your terminal application may
+recognize X11 color names, `rgb:xxx/yyy/zzz` or other formats.
 
-If your cursor used to blink, and now it's stopped, you can fix that
-with `unset MODE_CURSOR_DEFAULT`. The default (steady) is
-appropriate for most terminals.
+The recognized style words are `steady`, `blinking`, `block`, `underline`
+and `bar`.
 
-If you are using `tmux` but `$TMUX` is not set (e.g., you're running
-zsh on a remote host), you may need to set `TMUX_PASSTHROUGH=1` to
+If your cursor used to blink, and now it's stopped, you can fix that with
+`unset MODE_CURSOR_DEFAULT`. The default (steady) is appropriate for most
+terminals.
+
+If you are using `tmux` and cursor styles are not shown, first ensure that
+your terminal application [reports its capabilities][SsSe] properly. If it
+is an old version of tmux, you may need to set `TMUX_PASSTHROUGH=1` to
 get the cursor styling to work.
 
 When in VISUAL or VLINE mode, ZSH colors text in reverse (background and
