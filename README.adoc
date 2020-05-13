@@ -143,6 +143,7 @@ VIM_MODE_TRACK_KEYMAP=no
 ```
 
 === Mode-sensitive cursor styling
+:SsSe: https://github.com/softmoth/zsh-vim-mode/issues/23#issuecomment-627991663
 
 Change the color and shape of the terminal cursor with:
 
@@ -166,7 +167,7 @@ If your cursor used to blink, and now it's stopped, you can fix that with
 terminals.
 
 If you are using `tmux` and cursor styles are not shown, first ensure that
-your terminal application [reports its capabilities][SsSe] properly. If it
+your terminal application {SsSe}[reports its capabilities] properly. If it
 is an old version of tmux, you may need to set `TMUX_PASSTHROUGH=1` to
 get the cursor styling to work.
 
@@ -174,8 +175,6 @@ When in VISUAL or VLINE mode, ZSH colors text in reverse (background and
 foreground colors swapped). Depending on your terminal, this may override or
 interfere with the cursor color. Using `bar` or `underline` may display
 better than `block` in some cases.
-
-[SsSe]: https://github.com/softmoth/zsh-vim-mode/issues/23#issuecomment-627991663
 
 ==== Disabling cursor styling
 
