@@ -7,6 +7,7 @@ Friendly bindings for ZSH's vi mode
 
 == Installation
 :zshplugmgr: https://github.com/unixorn/awesome-zsh-plugins/blob/master/README.md#installation
+:issue-8: https://github.com/softmoth/zsh-vim-mode/issues/8
 
 Install this plugin with any {zshplugmgr}[ZSH plugin manager], or just
 source it from your `.zshrc`:
@@ -14,6 +15,15 @@ source it from your `.zshrc`:
 ```
 # In .zshrc
 source "$HOME/zsh-vim-mode/zsh-vim-mode.plugin.zsh"
+```
+
+To {issue-8}[avoid conflicts], load these plugins in the following order if you use
+them:
+
+```
+zsh-autosuggestions
+zsh-syntax-highlighting
+zsh-vim-mode
 ```
 
 == Additional key bindings

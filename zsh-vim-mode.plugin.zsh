@@ -203,6 +203,12 @@ if [[ -z $VIM_MODE_NO_DEFAULT_BINDINGS ]]; then
         vim-mode-bindkey viins vicmd -- down-line-or-history           Down
     fi
 
+    # Compatibility with zsh-autosuggestions; see issue #25
+    if zle -la up-line-or-beginning-search; then
+        vim-mode-bindkey       vicmd -- down-line-or-beginning-search  j
+        vim-mode-bindkey       vicmd -- up-line-or-beginning-search    k
+    fi
+
     exit-cmd () {exit;}
     zle -N exit-cmd
     vim-mode-bindkey       vicmd -- exit-cmd                           Z Z
