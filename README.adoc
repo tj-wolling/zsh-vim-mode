@@ -125,6 +125,13 @@ works in both the shell and editor.
 inoremap <C-d> <Esc>
 ```
 
+==== Wrap conflicting bindings with disambiguation widgets
+:issue-33: https://github.com/softmoth/zsh-vim-mode/issues/33
+
+A hack is provided in {issue-33}[issue #33] to use surrounds while keeping
+`KEYTIMEOUT=1`. The code can simply be copied into `.zshrc` after loading
+this module.
+
 === Disabling default keybindings
 
 Out of the box, various common keybindings for vim mode are defined. If this 
