@@ -78,7 +78,7 @@ with switching to NORMAL mode. You can configure which bindings it adds:
 ```zsh
 # Put this in .zshrc, before this plugin is loaded
 # Enable <Esc>-prefixed bindings that should rarely conflict with NORMAL mode
-VIM_MODE_ESC_PREFIXED_WANTED='bdfhul.g'  # Default is 'bdf.g'
+VIM_MODE_ESC_PREFIXED_WANTED='^?^Hbdfhul.g'  # Default is '^?^Hbdf.g'
 ```
 
 Please open an issue if you run find a conflicting binding you can not turn
