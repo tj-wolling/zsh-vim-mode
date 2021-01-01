@@ -199,10 +199,14 @@ if [[ -z $VIM_MODE_NO_DEFAULT_BINDINGS ]]; then
         vim-mode-bindkey viins vicmd -- history-substring-search-up    Up
         vim-mode-bindkey viins vicmd -- history-substring-search-down  Down
     else
-        vim-mode-bindkey viins vicmd -- up-line-or-history             '^P'
-        vim-mode-bindkey viins vicmd -- down-line-or-history           '^N'
-        vim-mode-bindkey viins vicmd -- up-line-or-history             Up
-        vim-mode-bindkey viins vicmd -- down-line-or-history           Down
+        autoload -Uz history-search-end
+        zle -N history-beginning-search-backward-end history-search-end
+        zle -N history-beginning-search-forward-end history-search-end
+
+        vim-mode-bindkey viins vicmd -- history-beginning-search-backward-end '^P'
+        vim-mode-bindkey viins vicmd -- history-beginning-search-forward-end  '^N'
+        vim-mode-bindkey viins vicmd -- history-beginning-search-backward-end Up
+        vim-mode-bindkey viins vicmd -- history-beginning-search-forward-end  Down
     fi
 
     # Compatibility with zsh-autosuggestions; see issue #25
