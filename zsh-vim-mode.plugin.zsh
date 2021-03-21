@@ -312,6 +312,7 @@ if [[ $VIM_MODE_TRACK_KEYMAP != no ]]; then
 
         local hook="$1"
         local keymap="$2"
+        rc=0  # Assume we'll succeed
 
         case $hook in
         line-init )
@@ -371,8 +372,11 @@ if [[ $VIM_MODE_TRACK_KEYMAP != no ]]; then
         * )
             # Should not happen
             zle && zle -M "zsh-vim-mode internal error: bad hook $hook"
+            rc=1  # Oops
             ;;
         esac
+
+        return $rc
     }
 
     vim_mode_set_keymap () {
@@ -639,6 +643,9 @@ if [[ $VIM_MODE_TRACK_KEYMAP != no ]]; then
                          set-terminal-cursor-style ${=MODE_CURSOR_VIINS} ;;
             esac
         fi
+
+        # Success
+        return 0
     }
 
     vim-mode-cursor-init-hook() {
