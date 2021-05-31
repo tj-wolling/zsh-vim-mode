@@ -254,23 +254,25 @@ if [[ -z $VIM_MODE_NO_DEFAULT_BINDINGS ]]; then
     #   > Copyright (c) 2010, Frank Terbeck <ft@bewatermyfriend.org>
     #   > The same licensing terms as with zsh apply.
     if (( $+VIM_MODE_VICMD_KEY )); then
-        vim-mode-bindkey viins -- vi-cmd-mode "$VIM_MODE_VICMD_KEY"
+        for CMD_KEY in $VIM_MODE_VICMD_KEY; do
+            vim-mode-bindkey viins -- vi-cmd-mode "$CMD_KEY"
 
-        case $VIM_MODE_VICMD_KEY in
-            ^[Dd] )
-                builtin set -o ignore_eof
-                vim-mode-bindkey vicmd -- vim-mode-accept-or-eof "$VIM_MODE_VICMD_KEY"
+            case $CMD_KEY in
+                ^[Dd] )
+                    builtin set -o ignore_eof
+                    vim-mode-bindkey vicmd -- vim-mode-accept-or-eof "$CMD_KEY"
 
-                function vim-mode-accept-or-eof() {
-                    if [[ $#BUFFER = 0 ]]; then
-                        exit
-                    else
-                        zle accept-line
-                    fi
-                }
-                zle -N vim-mode-accept-or-eof
-                ;;
-        esac
+                    function vim-mode-accept-or-eof() {
+                        if [[ $#BUFFER = 0 ]]; then
+                            exit
+                        else
+                            zle accept-line
+                        fi
+                    }
+                    zle -N vim-mode-accept-or-eof
+                    ;;
+            esac
+        done
     fi
 
     unfunction vim-mode-maybe-bind
